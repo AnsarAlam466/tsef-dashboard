@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSEF — Ten&See Execution Framework</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --bg4: #222232;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --text2: #888899;
+  --text3: #555566;
+  --tech: #00d4ff; --tech-bg: rgba(0,212,255,0.08);
+  --marketing: #ff6b9d; --marketing-bg: rgba(255,107,157,0.08);
+  --finance: #00ff88; --finance-bg: rgba(0,255,136,0.08);
+  --ops: #ff9500; --ops-bg: rgba(255,149,0,0.08);
+  --sales: #ffd700; --sales-bg: rgba(255,215,0,0.08);
+  --support: #bf5af2; --support-bg: rgba(191,90,242,0.08);
+  --primary: #ff4444; --secondary: #ffaa00; --parallel: #00cc66;
+  --radius: 8px; --radius-lg: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+.app { display: flex; height: 100vh; }
+.sidebar { width: 220px; min-width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; overflow-y: auto; }
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+.logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+.logo-sub { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; margin-top: 2px; }
+.sidebar-section { padding: 16px 12px 8px; }
+.sidebar-label { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.15s; margin-bottom: 2px; }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg4); color: var(--text); font-weight: 500; }
+.nav-icon { font-size: 14px; width: 18px; text-align: center; }
+.dept-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid var(--border); }
+.user-badge { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--bg3); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; }
+.user-badge:hover { background: var(--bg4); }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #000; flex-shrink: 0; }
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 600; }
+.user-role { font-size: 10px; color: var(--text3); }
+.user-arrow { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
+.user-badge:hover .user-arrow { transform: rotate(180deg); }
+.main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.topbar-title { font-size: 16px; font-weight: 700; }
+.topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.btn { padding: 7px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: 'Inter', sans-serif; }
+.btn-primary { background: var(--text); color: var(--bg); }
+.btn-primary:hover { opacity: 0.85; }
+.btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--text3); }
+.btn-danger { background: rgba(255,68,68,0.2); color: #ff6666; border: 1px solid rgba(255,68,68,0.3); }
+.btn-success { background: var(--finance); color: #000; border: none; }
+.btn-success:hover { opacity: 0.85; }
+.content { padding: 28px; flex: 1; }
+.page { display: none; }
+.page.active { display: block; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+.stat-label { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 14px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+.person-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; }
+.person-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.person-card.danny::before { background: var(--tech); }
+.person-card.marwa::before { background: var(--marketing); }
+.person-card.ansar::before { background: var(--ops); }
+.person-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.person-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #000; }
+.person-name { font-size: 14px; font-weight: 700; }
+.person-dept { font-size: 11px; color: var(--text3); }
+.task-count-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.task-count { flex: 1; background: var(--bg3); border-radius: var(--radius); padding: 10px; text-align: center; }
+.tc-num { font-size: 20px; font-weight: 800; }
+.tc-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.health-bar { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.health-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.task-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 8px; border-left: 3px solid transparent; cursor: pointer; transition: all 0.15s; }
+.task-item:hover { background: var(--bg4); }
+.task-item.primary { border-left-color: var(--primary); }
+.task-item.secondary { border-left-color: var(--secondary); }
+.task-item.parallel { border-left-color: var(--parallel); }
+.task-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.task-body { flex: 1; min-width: 0; }
+.task-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+.task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; letter-spacing: 0.3px; }
+.tag-tech { background: var(--tech-bg); color: var(--tech); }
+.tag-marketing { background: var(--marketing-bg); color: var(--marketing); }
+.tag-finance { background: var(--finance-bg); color: var(--finance); }
+.tag-ops { background: var(--ops-bg); color: var(--ops); }
+.tag-sales { background: var(--sales-bg); color: var(--sales); }
+.tag-support { background: var(--support-bg); color: var(--support); }
+.tag-high { background: rgba(255,68,68,0.12); color: #ff6666; }
+.tag-medium { background: rgba(255,170,0,0.12); color: #ffbb33; }
+.tag-low { background: rgba(0,204,102,0.12); color: #33dd77; }
+.due-date { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.due-overdue { color: var(--primary); }
+.status-cycle { display: flex; gap: 4px; flex-shrink: 0; }
+.status-cycle-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg4); color: var(--text3); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.status-cycle-btn:hover { background: var(--bg3); color: var(--text); }
+.status-cycle-btn.active { background: var(--tech); color: var(--bg); border-color: var(--tech); }
+.status-cycle-btn.done { background: var(--finance); color: var(--bg); border-color: var(--finance); }
+.status-cycle-btn.blocked { background: var(--primary); color: #fff; border-color: var(--primary); }
+.task-context { font-size: 10px; color: var(--text3); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); cursor: pointer; }
+.nlp-container { max-width: 900px; }
+.nlp-textarea { width: 100%; min-height: 220px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; resize: vertical; outline: none; transition: border-color 0.15s; margin-bottom: 14px; }
+.nlp-textarea:focus { border-color: var(--text3); }
+.nlp-meta { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.nlp-meta input, .nlp-meta select { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; outline: none; flex: 1; min-width: 140px; }
+.nlp-meta select option { background: var(--bg2); }
+.parse-result { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 20px; display: none; }
+.parse-result.visible { display: block; }
+.result-section { margin-bottom: 20px; }
+.result-label { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.decision-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+.decision-num { width: 20px; height: 20px; background: var(--bg4); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text2); flex-shrink: 0; }
+.extracted-task { background: var(--bg3); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; border-left: 3px solid transparent; }
+.et-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.et-title { font-size: 13px; font-weight: 600; }
+.et-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+.confidence-high { font-size: 9px; padding: 2px 6px; background: rgba(0,255,136,0.12); color: var(--finance); border-radius: 10px; font-weight: 700; }
+.confidence-med { font-size: 9px; padding: 2px 6px; background: rgba(255,170,0,0.12); color: var(--secondary); border-radius: 10px; font-weight: 700; }
+.timeline-header { display: flex; gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; overflow: hidden; }
+.timeline-corner { width: 160px; min-width: 160px; padding: 14px 16px; border-right: 1px solid var(--border); font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.week-header { flex: 1; padding: 14px 16px; border-right: 1px solid var(--border); text-align: center; }
+.week-header:last-child { border-right: none; }
+.week-num { font-size: 11px; font-weight: 700; color: var(--text2); }
+.week-dates { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+.timeline-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }
+.timeline-row { display: flex; border-bottom: 1px solid var(--border); min-height: 80px; }
+.timeline-row:last-child { border-bottom: none; }
+.dept-label { width: 160px; min-width: 160px; padding: 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.dept-name { font-size: 12px; font-weight: 700; }
+.dept-owner { font-size: 10px; color: var(--text3); }
+.timeline-cell { flex: 1; padding: 10px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
+.timeline-cell:last-child { border-right: none; }
+.gantt-task { padding: 7px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.gantt-task:hover { opacity: 0.8; }
+.gantt-task-name { margin-bottom: 2px; }
+.gantt-task-meta { font-size: 10px; opacity: 0.7; font-weight: 400; }
+.gantt-progress { height: 2px; background: rgba(255,255,255,0.15); border-radius: 1px; margin-top: 5px; overflow: hidden; }
+.gantt-fill { height: 100%; border-radius: 1px; background: rgba(255,255,255,0.5); }
+.meeting-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.15s; }
+.meeting-card:hover { border-color: var(--text3); }
+.meeting-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.meeting-title { font-size: 15px; font-weight: 700; }
+.meeting-date { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.meeting-summary { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+.meeting-footer { display: flex; gap: 8px; align-items: center; }
+.attendee-pill { font-size: 10px; padding: 3px 8px; background: var(--bg3); border-radius: 20px; color: var(--text2); font-weight: 500; }
+.meeting-decisions { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.meeting-decisions-title { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.dept-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.pipeline-col { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.pipeline-header { padding: 12px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.pipeline-count { width: 20px; height: 20px; background: var(--bg4); border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.pipeline-body { padding: 10px; min-height: 200px; }
+.pipe-task { background: var(--bg3); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: grab; border-left: 3px solid transparent; font-size: 12px; transition: all 0.15s; }
+.pipe-task:hover { background: var(--bg4); }
+.pipe-task-title { font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+.pipe-task-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.weekly-report { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; }
+.report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.report-title { font-size: 16px; font-weight: 700; }
+.report-date { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.report-section { margin-bottom: 20px; }
+.report-section-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.report-item { padding: 10px 12px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 6px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+.report-item-status { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.suggestion-banner { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+.suggestion-icon { font-size: 24px; }
+.suggestion-text { flex: 1; font-size: 13px; color: var(--text2); }
+.suggestion-text strong { color: var(--text); }
+.collision-banner { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+.collision-banner .btn-primary { background: var(--primary); color: #fff; white-space: nowrap; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+.hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.3px; }
+.badge-green { background: rgba(0,255,136,0.12); color: var(--finance); }
+.badge-red { background: rgba(255,68,68,0.12); color: #ff6666; }
+.badge-amber { background: rgba(255,170,0,0.12); color: #ffbb33; }
+.badge-blue { background: rgba(0,212,255,0.12); color: var(--tech); }
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 520px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.form-input, .form-select, .form-textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; outline: none; transition: border-color 0.15s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--text3); }
+.form-select option { background: var(--bg2); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; max-width: 400px; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast-success { border-left: 3px solid var(--finance); }
+.toast-error { border-left: 3px solid var(--primary); }
+.toast-info { border-left: 3px solid var(--tech); }
+.loading-dots { display: inline-flex; gap: 4px; }
+.loading-dots span { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: bounce 1.2s infinite; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; }
+.card-title { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.demo-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.parse-bar-container { width: 100%; height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden; margin: 16px 0 8px; }
+.parse-bar { height: 100%; background: linear-gradient(90deg, var(--tech), var(--marketing), var(--finance)); width: 0%; border-radius: 2px; transition: width 0.3s; }
+.stages { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.stage { font-size: 10px; padding: 4px 10px; background: var(--bg3); color: var(--text3); border-radius: 20px; transition: all 0.3s; }
+.stage.active { background: rgba(0,212,255,0.12); color: var(--tech); }
+.parsing-box { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+.stat-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.stat-item { text-align: center; }
+.stat-num { font-size: 24px; font-weight: 800; }
+.dept-dist { display: flex; gap: 12px; flex-wrap: wrap; }
+.dept-pill { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.member-load { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.member-card { background: var(--bg3); border-radius: 8px; padding: 14px; text-align: center; }
+.member-avatar-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #000; margin: 0 auto 8px; }
+.member-name-sm { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.member-count { font-size: 20px; font-weight: 800; }
+.member-label { font-size: 10px; color: var(--text3); }
+.rhythm-day { background: var(--bg3); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.rhythm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.rhythm-day-name { font-size: 12px; font-weight: 700; }
+.rhythm-focus { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.rhythm-tasks { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.meeting-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.meeting-field-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+.question-item { padding: 8px 12px; background: var(--bg3); border-radius: 6px; margin-bottom: 6px; font-size: 13px; color: var(--text2); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.4s ease; }
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .three-col { grid-template-columns: 1fr; } .two-col { grid-template-columns: 1fr; } .dept-pipeline { grid-template-columns: 1fr; } .member-load { grid-template-columns: 1fr; } .meeting-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .sidebar { display: none; } .stats-row { grid-template-columns: 1fr; } }
+</style>
+<base target="_blank">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">Ten&See</div>
+      <div class="logo-sub">TSEF v2.1 — NLP INTEGRATED</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <div class="nav-item active" onclick="showPage('overview',this)"><span class="nav-icon">⚡</span> Overview</div>
+      <div class="nav-item" onclick="showPage('mytasks',this)"><span class="nav-icon">✅</span> My Tasks</div>
+      <div class="nav-item" onclick="showPage('timeline',this)"><span class="nav-icon">📊</span> Timeline</div>
+      <div class="nav-item" onclick="showPage('meetings',this)"><span class="nav-icon">📋</span> Meetings</div>
+      <div class="nav-item" onclick="showPage('nlp',this)"><span class="nav-icon">🧠</span> NLP Input</div>
+      <div class="nav-item" onclick="showPage('report',this)"><span class="nav-icon">📈</span> Weekly Report</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Departments</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('tech')"><span class="dept-dot" style="background:var(--tech)"></span> Product & Tech</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('marketing')"><span class="dept-dot" style="background:var(--marketing)"></span> Marketing</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('ops')"><span class="dept-dot" style="background:var(--ops)"></span> Operations</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('finance')"><span class="dept-dot" style="background:var(--finance)"></span> Finance</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('sales')"><span class="dept-dot" style="background:var(--sales)"></span> Sales</div>
+      <div class="nav-item" onclick="showPage('dept',this);setDept('support')"><span class="dept-dot" style="background:var(--support)"></span> Tech Support</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-badge" onclick="cycleUser()">
+        <div class="user-avatar" id="sidebar-avatar" style="background:var(--ops)">A</div>
+        <div class="user-info"><div class="user-name" id="sidebar-name">Ansar</div><div class="user-role" id="sidebar-role">Operations Head</div></div>
+        <span class="user-arrow">▼</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Overview</div>
+        <div class="topbar-sub" id="topbar-sub">Ten&See Execution Framework — <span id="current-date"></span></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" onclick="openModal('task')">+ Add Task</button>
+        <button class="btn btn-primary" onclick="openModal('meeting')">+ New Meeting</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="page-overview" class="page active">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Total Tasks</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">Across all departments</div></div>
+          <div class="stat-card"><div class="stat-label">Done This Week</div><div class="stat-value" style="color:var(--finance)" id="stat-done">0</div><div class="stat-sub">Completed tasks</div></div>
+          <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:var(--primary)" id="stat-overdue">0</div><div class="stat-sub">Needs attention</div></div>
+          <div class="stat-card"><div class="stat-label">Blocked</div><div class="stat-value" style="color:var(--secondary)" id="stat-blocked">0</div><div class="stat-sub">Waiting on dependencies</div></div>
+        </div>
+        <div class="suggestion-banner" id="overview-suggestion" style="display:none">
+          <span class="suggestion-icon">💡</span>
+          <div class="suggestion-text" id="suggestion-text"></div>
+        </div>
+        <div class="collision-banner" id="collision-banner" style="display:none">
+          <span class="suggestion-icon">🚨</span>
+          <div class="suggestion-text" id="collision-text"></div>
+          <button class="btn btn-primary" onclick="scheduleCollisionMeeting()">Schedule Now</button>
+        </div>
+        <div class="section-title">Team Health</div>
+        <div class="three-col" id="team-cards"></div>
+        <div class="two-col">
+          <div><div class="section-title">🔴 Overdue & Urgent</div><div id="urgent-tasks"></div></div>
+          <div><div class="section-title">📅 Recent Meetings</div><div id="recent-meetings"></div></div>
+        </div>
+        <div class="section-title">🎯 Next Milestone</div>
+        <div class="card" style="padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span style="font-size:14px;font-weight:600">TSEF v2 Local Deploy</span>
+            <span style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace">Target: 12 July 2026</span>
+          </div>
+          <div style="height:8px;background:var(--bg4);border-radius:4px;overflow:hidden">
+            <div id="milestone-bar" style="height:100%;background:var(--finance);border-radius:4px;width:0%;transition:width 0.5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text3)">
+            <span id="milestone-progress">0% complete</span>
+            <span id="milestone-remaining">0 tasks remaining</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY TASKS -->
+      <div id="page-mytasks" class="page">
+        <div class="section-title" id="mytasks-title">Ansar's Task Board</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px">
+          <span class="badge badge-red">🔴 Primary: Do First</span>
+          <span class="badge badge-amber">🟡 Secondary: Do Next</span>
+          <span class="badge badge-green">🟢 Parallel: Background</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div class="card" style="border-top:3px solid var(--primary)">
+            <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">🔴 Primary</div>
+            <div id="mytasks-primary"></div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--secondary)">
+            <div style="font-size:12px;font-weight:700;color:var(--secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">🟡 Secondary</div>
+            <div id="mytasks-secondary"></div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--parallel)">
+            <div style="font-size:12px;font-weight:700;color:var(--parallel);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">🟢 Parallel</div>
+            <div id="mytasks-parallel"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div id="page-timeline" class="page">
+        <div class="section-title">📊 4-Week Timeline</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:20px">Auto-updates when tasks change. Click tasks to edit.</div>
+        <div id="timeline-container"></div>
+      </div>
+
+      <!-- MEETINGS -->
+      <div id="page-meetings" class="page">
+        <div class="section-title">📋 All Meetings</div>
+        <div id="meetings-list"></div>
+      </div>
+
+      <!-- NLP — DEEP PARSE ENGINE -->
+      <div id="page-nlp" class="page">
+        <div class="nlp-container">
+          <div class="section-title">🧠 NLP Meeting Parser — Deep Parse Engine</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Paste a transcript, WhatsApp export, or messy notes. TSEF extracts decisions, auto-assigns tasks to the right person/department, detects deadlines, and generates a weekly rhythm — then saves everything straight into this dashboard.</div>
+
+          <div class="demo-btns">
+            <button class="btn btn-ghost" onclick="loadDemo('meeting')">📋 Demo: Meeting</button>
+            <button class="btn btn-ghost" onclick="loadDemo('chaos')">🌪️ Demo: Chaos</button>
+            <button class="btn btn-ghost" onclick="loadDemo('whatsapp')">💬 Demo: WhatsApp</button>
+          </div>
+
+          <div class="nlp-meta">
+            <input type="date" id="nlp-date">
+            <select id="nlp-attendees"><option>Danny, Marwa, Ansar</option><option>Danny, Ansar</option><option>Marwa, Ansar</option><option>Danny, Marwa</option></select>
+            <select id="nlp-mode"><option value="deep">🔬 Deep Parse</option><option value="fast">⚡ Fast Parse</option></select>
+          </div>
+          <textarea class="nlp-textarea" id="nlp-textarea" placeholder="Paste meeting transcript, WhatsApp export, or messy notes here...&#10;&#10;Example:&#10;Danny: We need to build the NLP parser by Friday.&#10;Marwa: I'll handle the marketing content.&#10;Ansar: I'll set up the meeting structure."></textarea>
+          <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="runDeepParse()">🤖 RUN DEEP PARSE</button>
+            <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+            <button class="btn btn-ghost" onclick="openModal('meeting')">✏️ Manual Entry</button>
+          </div>
+
+          <div class="parsing-box" id="parse-loading">
+            <div style="font-size:13px;color:var(--text2);font-family:'JetBrains Mono',monospace" id="parse-status-text">Initializing tokenizer...</div>
+            <div class="parse-bar-container"><div class="parse-bar" id="parse-bar"></div></div>
+            <div class="stages">
+              <span class="stage" id="stage-1">1. Tokenize</span>
+              <span class="stage" id="stage-2">2. Extract</span>
+              <span class="stage" id="stage-3">3. Classify</span>
+              <span class="stage" id="stage-4">4. Assign</span>
+              <span class="stage" id="stage-5">5. Distribute</span>
+            </div>
+          </div>
+
+          <div id="parse-result">
+            <div class="card fade-in">
+              <div class="card-title">📊 Executive Summary</div>
+              <div id="parse-summary" style="font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--text2)"></div>
+              <div class="stat-row">
+                <div class="stat-item"><div class="stat-num" id="stat-nlp-decisions" style="color:var(--tech)">0</div><div class="stat-label">Decisions</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-nlp-tasks" style="color:var(--marketing)">0</div><div class="stat-label">Tasks</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-nlp-questions" style="color:var(--ops)">0</div><div class="stat-label">Questions</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-nlp-depts" style="color:var(--finance)">0</div><div class="stat-label">Departments</div></div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+            <div class="result-section"><div class="result-label">Decisions Extracted</div><div id="parse-decisions"></div></div>
+            <div class="hr"></div>
+            <div class="result-section"><div class="result-label">Tasks Extracted (auto-assigned)</div><div id="parse-tasks"></div></div>
+            <div class="hr"></div>
+
+            <div class="card fade-in">
+              <div class="card-title">🏢 Department Distribution</div>
+              <div class="dept-dist" id="dept-distribution"></div>
+            </div>
+            <div class="card fade-in">
+              <div class="card-title">👤 Member Workload</div>
+              <div class="member-load" id="member-workload"></div>
+            </div>
+            <div class="card fade-in">
+              <div class="card-title">📅 Weekly Rhythm Generated</div>
+              <div id="weekly-rhythm"></div>
+            </div>
+
+            <div class="result-section"><div class="result-label">Open Questions</div><div id="parse-questions"></div></div>
+            <div class="result-section"><div class="result-label">Next Meeting Suggested</div><p id="parse-next" style="font-size:13px;color:var(--tech);font-weight:600"></p></div>
+
+            <div style="display:flex;gap:10px;margin-top:20px">
+              <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+              <button class="btn btn-ghost" onclick="runDeepParse()">🔄 Regenerate</button>
+              <button class="btn btn-success" onclick="confirmAndSave()" style="flex:1">✅ CONFIRM & SAVE TO DASHBOARD</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY REPORT -->
+      <div id="page-report" class="page">
+        <div class="section-title">📈 Weekly Report</div>
+        <div id="weekly-report-container"></div>
+      </div>
+
+      <!-- DEPT -->
+      <div id="page-dept" class="page">
+        <div class="section-title" id="dept-title">Department Pipeline</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:20px">Click tasks to edit. Status updates reflect across all pages.</div>
+        <div class="dept-pipeline" id="dept-pipeline"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- EDIT TASK MODAL -->
+<div class="modal-overlay" id="edit-task-modal">
+  <div class="modal">
+    <div class="modal-title">Edit Task</div>
+    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="edit-task-title"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Department</label><select class="form-select" id="edit-task-dept"><option value="tech">Product & Tech</option><option value="marketing">Marketing</option><option value="ops">Operations</option><option value="finance">Finance</option><option value="sales">Sales</option><option value="support">Tech Support</option></select></div>
+      <div class="form-group"><label class="form-label">Assigned To</label><select class="form-select" id="edit-task-owner"><option value="Danny">Danny</option><option value="Marwa">Marwa</option><option value="Ansar">Ansar</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="edit-task-priority"><option value="primary">🔴 Primary</option><option value="secondary">🟡 Secondary</option><option value="parallel">🟢 Parallel</option></select></div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="edit-task-status"><option value="not_started">Not Started</option><option value="in_progress">In Progress</option><option value="done">Done</option><option value="blocked">Blocked</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="edit-task-due"></div>
+      <div class="form-group"><label class="form-label">Progress %</label><input type="number" class="form-input" id="edit-task-progress" min="0" max="100"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Fallback Action</label><input type="text" class="form-input" id="edit-task-fallback" placeholder="e.g., escalate to Danny if not done"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('edit-task')">Cancel</button>
+      <button class="btn btn-danger" onclick="deleteTask()">Delete</button>
+      <button class="btn btn-primary" onclick="saveTaskEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="add-task-modal">
+  <div class="modal">
+    <div class="modal-title">Add New Task</div>
+    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="add-task-title" placeholder="What needs to be done?"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Department</label><select class="form-select" id="add-task-dept"><option value="tech">Product & Tech</option><option value="marketing">Marketing</option><option value="ops">Operations</option><option value="finance">Finance</option><option value="sales">Sales</option><option value="support">Tech Support</option></select></div>
+      <div class="form-group"><label class="form-label">Assigned To</label><select class="form-select" id="add-task-owner"><option value="Danny">Danny</option><option value="Marwa">Marwa</option><option value="Ansar">Ansar</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="add-task-priority"><option value="primary">🔴 Primary</option><option value="secondary">🟡 Secondary</option><option value="parallel">🟢 Parallel</option></select></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="add-task-due"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Fallback Action</label><input type="text" class="form-input" id="add-task-fallback" placeholder="e.g., escalate to group if not done"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-task')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewTask()">Create Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MEETING MODAL -->
+<div class="modal-overlay" id="add-meeting-modal">
+  <div class="modal">
+    <div class="modal-title">New Meeting</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="add-meeting-date"></div>
+      <div class="form-group"><label class="form-label">Attendees</label><input type="text" class="form-input" id="add-meeting-attendees" value="Danny, Marwa, Ansar"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Summary</label><textarea class="form-textarea" id="add-meeting-summary" placeholder="What was discussed..."></textarea></div>
+    <div class="form-group"><label class="form-label">Decisions (one per line)</label><textarea class="form-textarea" id="add-meeting-decisions" placeholder="Decision one&#10;Decision two"></textarea></div>
+    <div class="form-group"><label class="form-label">Open Questions</label><textarea class="form-textarea" id="add-meeting-questions" placeholder="Questions for next meeting..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-meeting')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewMeeting()">Save Meeting</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ CORE CONFIG (merged: dashboard display fields + NLP engine keyword fields) ============ */
+const DEPTS={
+  tech:{name:'Product & Tech',color:'#00d4ff',owner:'Danny',icon:'💻',keywords:['code','build','develop','api','database','server','deploy','backend','frontend','ui','ux','bug','fix','azure','aws','cloud','infrastructure','docker','git','repo','programming','software','app','website','hosting','domain','ssl','security','authentication','login','oauth','webhook','integration','llm','ai model','machine learning','python','javascript','react','node','mongodb','sql','redis','testing','qa','monitoring','performance','optimization','refactor','mobile','ios','android','encrypt','rate limit','schema','migration']},
+  marketing:{name:'Marketing & Growth',color:'#ff6b9d',owner:'Marwa',icon:'📣',keywords:['marketing','brand','content','social media','instagram','tiktok','twitter','facebook','linkedin','youtube','ads','campaign','seo','blog','newsletter','email','influencer','partnership','pr','press','media','launch','promotion','growth','engagement','creative','design','copywriting','positioning','competitor','market research','feedback','testimonial','event','affiliate','viral','hashtag','audience','follower','colors','brand colors','culture fit','instagram strategy']},
+  ops:{name:'Operations & Admin',color:'#ff9500',owner:'Ansar',icon:'🛠',keywords:['operations','admin','process','workflow','documentation','meeting','minutes','agenda','schedule','calendar','hr','hiring','interview','onboarding','contract','legal','compliance','policy','procedure','audit','review','report','dashboard','planning','roadmap','milestone','timeline','deadline','resource','nda','ip','trademark','copyright','license','stakeholder','gdpr','privacy policy','legal compliance','lawyer','myipo']},
+  finance:{name:'Finance & Strategy',color:'#00ff88',owner:'Ansar',icon:'💰',keywords:['finance','financial','budget','revenue','profit','loss','income','expense','cost','pricing','fee','subscription','billing','invoice','payment','payroll','salary','compensation','equity','shares','stock','investment','funding','venture','capital','valuation','burn rate','runway','cash flow','forecast','model','accounting','tax','profit share','profit-share','money side']},
+  sales:{name:'Sales & Business Dev',color:'#ffd700',owner:'Marwa',icon:'🤝',keywords:['sales','sell','deal','pipeline','crm','lead','prospect','client','customer','account','opportunity','quote','proposal','negotiation','closing','commission','quota','target','channel','partner','reseller','b2b','b2c','enterprise','demo','trial','pilot','purchase order','discount','pricing model','freemium','users first','get users']},
+  support:{name:'Technical Support',color:'#bf5af2',owner:'Danny',icon:'🎧',keywords:['support','help','ticket','issue','bug','error','crash','down','outage','incident','escalation','sla','response time','faq','knowledge base','troubleshoot','debug','patch','update','maintenance','backup','downtime','uptime','monitoring','refund','render server','server down']}
+};
+const USERS={
+  Danny:{role:'Product & Technology',color:'#00d4ff',avatar:'D',skills:['tech','support'],capacity:5},
+  Marwa:{role:'Marketing & Growth',color:'#ff6b9d',avatar:'M',skills:['marketing','sales'],capacity:5},
+  Ansar:{role:'Operations Head',color:'#ff9500',avatar:'A',skills:['ops','finance'],capacity:5}
+};
+const STATUS_CYCLE=['not_started','in_progress','done','blocked'];
+const STATUS_ICONS={not_started:'○',in_progress:'▶',done:'✓',blocked:'✕'};
+const STATUS_LABELS={not_started:'Not Started',in_progress:'In Progress',done:'Done',blocked:'Blocked'};
+const PRIORITY_WEIGHTS={primary:3,secondary:2,parallel:1};
+let currentUser='Ansar',currentDept='tech',parsedData=null,editingTaskId=null;
+
+const DEMOS={
+meeting:`Meeting — 5 July 2026, 3:00 PM
+Attendees: Danny, Marwa, Ansar
+
+Danny: We need to get the Azure VM fully documented by next week. The current setup is stable but nobody knows how it's configured.
+
+Marwa: I think we should also finalize the marketing angle before we build anything else. If we don't know who we're selling to, the product won't matter.
+
+Ansar: Agreed. I also need the NDA drafted before we talk to that potential hire. We can't have intellectual property discussions without protection.
+
+Danny: I'll handle the Azure documentation and the backend API routes. The MongoDB schema needs to be locked down too.
+
+Marwa: I'll take the marketing strategy — top 3 platforms, the cinematic intro concept, and the brand positioning document. I need two weeks for the full package.
+
+Ansar: I'll draft the NDA, set up the profit-share model, and document the meeting minutes from last week. Also, we need to trademark "Ten&See" — MyIPO process.
+
+Decisions made:
+1. Azure VM documentation is priority one — Danny owns it.
+2. Marketing strategy comes before product build — Marwa owns it.
+3. NDA must be signed before any external conversation — Ansar owns it.
+4. Profit-share model needs to be ready before hiring — Ansar owns it.
+5. TSEF v2 will be built locally first, then deployed.
+
+Open questions:
+- Who takes the dev lead role permanently?
+- Do we go funding route or bootstrap?
+- What's the timeline for the first revenue?`,
+
+chaos:`yo so like we were talking yesterday and danny said the server is kinda broken and we need to fix it ASAP. marwa was like yeah but also we need to figure out the instagram strategy cuz our engagement is dead. ansar mentioned something about legal stuff and contracts and i think he said we need to get the trademark thing sorted before someone steals our name. also danny wants to build the nlp thing but marwa thinks we should focus on getting users first. ansar said he will handle the money side and figure out how much we need to burn per month. btw the website is slow as hell and danny needs to optimize it. marwa said she will create content for tiktok and maybe youtube shorts. ansar said he will schedule a meeting with the lawyer next monday. also we need to decide on the pricing model — freemium or paid? and when do we launch? by end of month?`,
+
+whatsapp:`[10:42 AM] Danny: guys the render server is down again
+[10:43 AM] Marwa: ugh not again
+[10:44 AM] Ansar: we need to move to azure permanently
+[10:45 AM] Danny: i'm on it, will migrate everything by friday
+[10:46 AM] Marwa: btw i need the brand colors from you danny
+[10:47 AM] Danny: will send by tomorrow
+[10:48 AM] Ansar: also we need to discuss the new hire profit share
+[10:49 AM] Marwa: yes! when?
+[10:50 AM] Ansar: let's do a meeting next tuesday
+[10:51 AM] Danny: i'll prepare the technical assessment
+[10:52 AM] Marwa: i'll prepare the culture fit questions
+[10:53 AM] Ansar: i'll draft the contract terms
+[10:54 AM] Danny: the ui needs to be reel-style, 3 pages max
+[10:55 AM] Marwa: agreed, mobile first
+[10:56 AM] Ansar: we need to register ten&see trademark before someone else does
+[10:57 AM] Danny: can you handle that ansar?
+[10:58 AM] Ansar: yes, will file by end of week
+[10:59 AM] Marwa: also need budget for ads, when can we discuss?
+[11:00 AM] Ansar: add to tuesday agenda
+[11:01 AM] Danny: the api needs rate limiting, security concern
+[11:02 AM] Marwa: customer data privacy?
+[11:03 AM] Ansar: gdpr compliance needed
+[11:04 AM] Danny: i'll implement oauth and encryption
+[11:05 AM] Marwa: i'll draft the privacy policy
+[11:06 AM] Ansar: i'll review legal compliance`
+};
+
+/* ============ STORAGE ============ */
+function getTasks(){return JSON.parse(localStorage.getItem('tsef_tasks')||'[]');}
+function setTasks(t){localStorage.setItem('tsef_tasks',JSON.stringify(t));}
+function getMeetings(){return JSON.parse(localStorage.getItem('tsef_meetings')||'[]');}
+function setMeetings(m){localStorage.setItem('tsef_meetings',JSON.stringify(m));}
+
+function init(){
+  document.getElementById('current-date').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('nlp-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('add-task-due').value=new Date().toISOString().split('T')[0];
+  document.getElementById('add-meeting-date').value=new Date().toISOString().split('T')[0];
+  if(getTasks().length===0)seedData();
+  updateSidebar();renderOverview();renderMyTasks();renderTimeline();renderMeetings();renderWeeklyReport();checkFallbacks();checkCollisions();
+}
+
+function seedData(){
+  const now=new Date().toISOString();
+  const tasks=[
+    {id:'task_001',title:'New UI Draft — 3 pages, reel-style',department:'tech',assignedTo:'Danny',priority:'primary',status:'in_progress',dueDate:'2026-07-01',progress:60,fallback:{action:'Escalate to Ansar',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_002',title:'Azure VM stable — document what is live',department:'tech',assignedTo:'Danny',priority:'primary',status:'done',dueDate:'2026-07-05',progress:100,fallback:{action:'Group meeting',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_003',title:'TSEF backend — MongoDB + Express routes',department:'tech',assignedTo:'Danny',priority:'secondary',status:'not_started',dueDate:'2026-07-12',progress:0,fallback:{action:'Ansar builds with Cursor',triggered:false},dependencies:['task_002'],meetingId:'meet_001',createdAt:now},
+    {id:'task_004',title:'Top 3 marketing ideas — angle, platform, feeling',department:'marketing',assignedTo:'Marwa',priority:'primary',status:'in_progress',dueDate:'2026-07-01',progress:50,fallback:{action:'Ansar shortlists',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_005',title:'Cinematic intro concept — storyline and feeling',department:'marketing',assignedTo:'Marwa',priority:'primary',status:'not_started',dueDate:'2026-07-01',progress:0,fallback:{action:'Push to next meeting',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_006',title:'TSEF blueprint and spec for Danny',department:'ops',assignedTo:'Ansar',priority:'primary',status:'done',dueDate:'2026-07-05',progress:100,fallback:{action:'N/A',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_007',title:'Notion workspace configured and shared',department:'ops',assignedTo:'Ansar',priority:'primary',status:'in_progress',dueDate:'2026-07-05',progress:70,fallback:{action:'Use Google Drive',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_008',title:'NDA drafted before new person conversation',department:'ops',assignedTo:'Ansar',priority:'primary',status:'not_started',dueDate:'2026-07-08',progress:0,fallback:{action:'Escalate to team',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_009',title:'Meeting minutes 28 June — full document',department:'ops',assignedTo:'Ansar',priority:'secondary',status:'in_progress',dueDate:'2026-07-06',progress:40,fallback:{action:'N/A',triggered:false},dependencies:[],meetingId:'meet_002',createdAt:now},
+    {id:'task_010',title:'MyIPO trademark — Ten&See name and logo',department:'ops',assignedTo:'Ansar',priority:'secondary',status:'not_started',dueDate:'2026-07-15',progress:0,fallback:{action:'N/A',triggered:false},dependencies:[],meetingId:null,createdAt:now},
+    {id:'task_011',title:'Profit share model before new person meeting',department:'finance',assignedTo:'Ansar',priority:'primary',status:'not_started',dueDate:'2026-07-08',progress:0,fallback:{action:'Group meeting',triggered:false},dependencies:[],meetingId:'meet_001',createdAt:now},
+    {id:'task_012',title:'AI infrastructure cost estimate',department:'finance',assignedTo:'Danny',priority:'secondary',status:'not_started',dueDate:'2026-07-12',progress:0,fallback:{action:'N/A',triggered:false},dependencies:[],meetingId:'meet_002',createdAt:now},
+  ];
+  const meetings=[
+    {id:'meet_001',date:'2026-07-05',attendees:['Danny','Marwa','Ansar'],summary:'TSEF local build decided. Danny backend, Ansar blueprint, Marwa UI testing. Azure VM confirmed stable. Two business routes discussed.',decisions:['Build TSEF locally first','One person takes dev lead','MVP must be advanced'],taskIds:['task_001','task_002','task_003','task_004','task_005','task_006','task_007'],status:'confirmed',openQuestions:['Who takes dev lead?','Funding or organic?'],nextMeetingSuggested:'2026-07-08'},
+    {id:'meet_002',date:'2026-06-28',attendees:['Danny','Marwa','Ansar'],summary:'Render removed, Azure VM set up via SSH. New UI direction — reel-style, mobile-first, 3 pages max. Ten&See positioning as Malaysia first student booking platform.',decisions:['Move from Render to Azure','Reel-style mobile UI','Ten&See is a booking platform not redirect'],taskIds:['task_009','task_012'],status:'confirmed',openQuestions:['Creative team structure?'],nextMeetingSuggested:'2026-07-05'},
+    {id:'meet_003',date:'2026-06-25',attendees:['Danny','Marwa','Ansar'],summary:'Potential new team member discussed. WhatsApp AI broker automation loop presented. MVP defined as advanced with privacy and security policies.',decisions:['NDA before new person conversation','MVP advanced not basic','WhatsApp API keys first'],taskIds:['task_008','task_011'],status:'confirmed',openQuestions:['What is profit share model?'],nextMeetingSuggested:'2026-06-28'},
+  ];
+  setTasks(tasks);setMeetings(meetings);showToast('Ten&See data loaded','success');
+}
+
+/* ============ NAVIGATION ============ */
+function showPage(pageId,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+pageId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const titles={overview:'Overview',mytasks:'My Tasks',timeline:'Timeline',meetings:'Meetings',nlp:'NLP Input',report:'Weekly Report',dept:'Department'};
+  document.getElementById('topbar-title').textContent=titles[pageId]||'TSEF';
+  if(pageId==='overview')renderOverview();
+  if(pageId==='mytasks')renderMyTasks();
+  if(pageId==='timeline')renderTimeline();
+  if(pageId==='meetings')renderMeetings();
+  if(pageId==='report')renderWeeklyReport();
+  if(pageId==='dept')renderDept();
+}
+
+function setDept(d){currentDept=d;document.getElementById('dept-title').textContent=DEPTS[d].name+' Pipeline';renderDept();}
+
+function cycleUser(){
+  const users=['Ansar','Danny','Marwa'];
+  const idx=users.indexOf(currentUser);
+  currentUser=users[(idx+1)%3];
+  updateSidebar();renderMyTasks();renderOverview();showToast('Viewing as '+currentUser,'info');
+}
+
+function updateSidebar(){
+  const u=USERS[currentUser];
+  document.getElementById('sidebar-name').textContent=currentUser;
+  document.getElementById('sidebar-role').textContent=u.role;
+  document.getElementById('sidebar-avatar').textContent=u.avatar;
+  document.getElementById('sidebar-avatar').style.background=u.color;
+}
+
+/* ============ RENDER: OVERVIEW / MY TASKS / TIMELINE / MEETINGS / REPORT / DEPT ============ */
+function renderOverview(){
+  const tasks=getTasks();const now=new Date();
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  const overdue=tasks.filter(t=>new Date(t.dueDate)<now&&t.status!=='done').length;
+  const blocked=tasks.filter(t=>t.status==='blocked').length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-done').textContent=done;
+  document.getElementById('stat-overdue').textContent=overdue;
+  document.getElementById('stat-blocked').textContent=blocked;
+  const pct=total>0?Math.round((done/total)*100):0;
+  document.getElementById('milestone-bar').style.width=pct+'%';
+  document.getElementById('milestone-progress').textContent=pct+'% complete';
+  document.getElementById('milestone-remaining').textContent=(total-done)+' tasks remaining';
+
+  document.getElementById('team-cards').innerHTML=Object.keys(USERS).map(person=>{
+    const pt=tasks.filter(t=>t.assignedTo===person);
+    const pd=pt.filter(t=>t.status==='done').length;
+    const po=pt.filter(t=>new Date(t.dueDate)<now&&t.status!=='done').length;
+    const hp=pt.length>0?Math.round((pd/pt.length)*100):0;
+    const hc=po>2?'var(--primary)':po>0?'var(--secondary)':'var(--finance)';
+    const u=USERS[person];
+    return `<div class="person-card ${person.toLowerCase()}">
+      <div class="person-header">
+        <div class="person-avatar" style="background:${u.color}">${u.avatar}</div>
+        <div><div class="person-name">${person}</div><div class="person-dept">${u.role}</div></div>
+      </div>
+      <div class="task-count-row">
+        <div class="task-count"><div class="tc-num" style="color:${u.color}">${pt.length}</div><div class="tc-label">Tasks</div></div>
+        <div class="task-count"><div class="tc-num" style="color:var(--finance)">${pd}</div><div class="tc-label">Done</div></div>
+        <div class="task-count"><div class="tc-num" style="color:${po>0?'var(--primary)':'var(--text3)'}">${po}</div><div class="tc-label">Overdue</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px"><span>Health</span><span>${hp}% on track</span></div>
+      <div class="health-bar"><div class="health-fill" style="width:${hp}%;background:${hc}"></div></div>
+    </div>`;
+  }).join('');
+
+  const urgent=tasks.filter(t=>(new Date(t.dueDate)<now&&t.status!=='done')||t.status==='blocked').sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  document.getElementById('urgent-tasks').innerHTML=urgent.length?urgent.slice(0,4).map(t=>renderTaskItem(t)).join(''):'<div class="empty"><div class="empty-icon">🎉</div>No urgent tasks!</div>';
+
+  const meetings=getMeetings().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('recent-meetings').innerHTML=meetings.slice(0,3).map(m=>`
+    <div class="meeting-card">
+      <div class="meeting-header"><div class="meeting-title">${new Date(m.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</div><div class="meeting-date">${m.taskIds?.length||0} tasks</div></div>
+      <div class="meeting-summary">${m.summary}</div>
+      <div class="meeting-footer">${(m.attendees||[]).map(a=>`<span class="attendee-pill">${a}</span>`).join('')}<span class="badge badge-green">${m.decisions?.length||0} decisions</span></div>
+    </div>`).join('')||'<div class="empty">No meetings yet</div>';
+}
+
+function renderTaskItem(t){
+  const dept=DEPTS[t.department];
+  const isOverdue=new Date(t.dueDate)<new Date()&&t.status!=='done';
+  return `<div class="task-item ${t.priority}" onclick="openEditTask('${t.id}')">
+    <div class="task-dot" style="background:${dept.color}"></div>
+    <div class="task-body">
+      <div class="task-title">${t.title}</div>
+      <div class="task-meta">
+        <span class="tag tag-${t.department}">${dept.name}</span>
+        <span class="due-date ${isOverdue?'due-overdue':''}">${isOverdue?'⚠️ ':''} ${new Date(t.dueDate).toLocaleDateString('en-GB')}</span>
+        <span class="badge ${t.status==='done'?'badge-green':t.status==='blocked'?'badge-red':'badge-blue'}">${STATUS_LABELS[t.status]}</span>
+      </div>
+    </div>
+    <div class="status-cycle" onclick="event.stopPropagation()">
+      ${STATUS_CYCLE.map(s=>`<button class="status-cycle-btn ${t.status===s?(s==='done'?'done':s==='blocked'?'blocked':'active'):''}" onclick="cycleTaskStatus('${t.id}','${s}')" title="${STATUS_LABELS[s]}">${STATUS_ICONS[s]}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderMyTasks(){
+  document.getElementById('mytasks-title').textContent=currentUser+"'s Task Board";
+  const tasks=getTasks().filter(t=>t.assignedTo===currentUser);
+  ['primary','secondary','parallel'].forEach(p=>{
+    const pt=tasks.filter(t=>t.priority===p).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+    const container=document.getElementById('mytasks-'+p);
+    container.innerHTML=pt.length?pt.map(t=>{
+      const dept=DEPTS[t.department];
+      const isOverdue=new Date(t.dueDate)<new Date()&&t.status!=='done';
+      const isDepBlocked=t.dependencies&&t.dependencies.length>0&&t.dependencies.some(depId=>{const dep=getTasks().find(dt=>dt.id===depId);return dep&&dep.status!=='done';});
+      return `<div class="task-item ${t.priority}" onclick="openEditTask('${t.id}')" style="margin-bottom:8px">
+        <div class="task-dot" style="background:${dept.color}"></div>
+        <div class="task-body">
+          <div class="task-title">${t.title}</div>
+          <div class="task-meta">
+            <span class="tag tag-${t.department}">${dept.name}</span>
+            <span class="due-date ${isOverdue?'due-overdue':''}">${isOverdue?'⚠️ ':''}${new Date(t.dueDate).toLocaleDateString('en-GB')}</span>
+            <span class="badge ${t.status==='done'?'badge-green':t.status==='blocked'?'badge-red':'badge-blue'}">${STATUS_LABELS[t.status]}</span>
+          </div>
+          <div style="margin-top:8px"><div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden"><div style="height:100%;background:${dept.color};width:${t.progress}%;border-radius:2px;transition:width 0.3s"></div></div><div style="font-size:10px;color:var(--text3);margin-top:3px">${t.progress}% complete</div></div>
+          ${isDepBlocked?'<div style="font-size:10px;color:var(--text3);margin-top:6px;font-style:italic">⏳ Waiting on dependencies</div>':''}
+          <div class="task-context">↳ Meeting: ${t.meetingId||'No meeting link'}</div>
+        </div>
+        <div class="status-cycle" onclick="event.stopPropagation()">
+          ${STATUS_CYCLE.map(s=>`<button class="status-cycle-btn ${t.status===s?(s==='done'?'done':s==='blocked'?'blocked':'active'):''}" onclick="cycleTaskStatus('${t.id}','${s}')" title="${STATUS_LABELS[s]}">${STATUS_ICONS[s]}</button>`).join('')}
+        </div>
+      </div>`;
+    }).join(''):`<div class="empty" style="padding:20px"><div class="empty-icon">📭</div>No ${p} tasks</div>`;
+  });
+}
+
+function cycleTaskStatus(taskId,newStatus){
+  const tasks=getTasks();const task=tasks.find(t=>t.id===taskId);if(!task)return;
+  if(newStatus==='done'&&task.dependencies&&task.dependencies.length>0){
+    const undone=task.dependencies.filter(depId=>{const dep=tasks.find(dt=>dt.id===depId);return dep&&dep.status!=='done';});
+    if(undone.length>0){showToast('Cannot mark done: dependencies not completed','error');return;}
+  }
+  task.status=newStatus;
+  if(newStatus==='done')task.progress=100;
+  if(newStatus==='not_started')task.progress=0;
+  if(newStatus==='in_progress'&&task.progress===0)task.progress=25;
+  setTasks(tasks);renderMyTasks();renderOverview();renderTimeline();showToast('Task: '+STATUS_LABELS[newStatus],'success');
+}
+
+function renderTimeline(){
+  const tasks=getTasks().filter(t=>t.status!=='done');
+  const now=new Date();
+  const startOfWeek=new Date(now);startOfWeek.setDate(now.getDate()-now.getDay()+1);startOfWeek.setHours(0,0,0,0);
+  const weeks=[];
+  for(let i=0;i<4;i++){const ws=new Date(startOfWeek);ws.setDate(startOfWeek.getDate()+(i*7));const we=new Date(ws);we.setDate(ws.getDate()+6);weeks.push({start:ws,end:we,num:getWeekNumber(ws)});}
+
+  let html='<div class="timeline-header"><div class="timeline-corner">Department</div>';
+  weeks.forEach(w=>{html+=`<div class="week-header"><div class="week-num">W${w.num}</div><div class="week-dates">${w.start.getDate()}–${w.end.getDate()} ${w.start.toLocaleString('en-GB',{month:'short'})}</div></div>`;});
+  html+='</div><div class="timeline-body">';
+
+  Object.keys(DEPTS).forEach(deptKey=>{
+    const dept=DEPTS[deptKey];const deptTasks=tasks.filter(t=>t.department===deptKey);
+    html+=`<div class="timeline-row"><div class="dept-label"><div class="dept-name" style="color:${dept.color}">${dept.icon} ${dept.name}</div><div class="dept-owner">${dept.owner}</div></div>`;
+    weeks.forEach(w=>{
+      const wt=deptTasks.filter(t=>{const due=new Date(t.dueDate);return due>=w.start&&due<=w.end;});
+      html+=`<div class="timeline-cell">`;
+      wt.forEach(t=>{
+        const isDepBlocked=t.dependencies&&t.dependencies.length>0&&t.dependencies.some(depId=>{const dep=getTasks().find(dt=>dt.id===depId);return dep&&dep.status!=='done';});
+        html+=`<div class="gantt-task${isDepBlocked?' dependency-wait':''}" style="background:${dept.color}22;border-left:3px solid ${dept.color}" onclick="openEditTask('${t.id}')">
+          <div class="gantt-task-name">${t.title}</div>
+          <div class="gantt-task-meta">${t.assignedTo} · Due ${new Date(t.dueDate).getDate()} ${new Date(t.dueDate).toLocaleString('en-GB',{month:'short'})}</div>
+          <div class="gantt-progress"><div class="gantt-fill" style="width:${t.progress}%;background:${dept.color}"></div></div>
+          ${isDepBlocked?'<div style="font-size:9px;color:var(--text3);margin-top:2px">⏳ waiting on deps</div>':''}
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  });
+  html+='</div>';
+  document.getElementById('timeline-container').innerHTML=html;
+}
+
+function getWeekNumber(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));const ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
+
+function renderMeetings(){
+  const meetings=getMeetings().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('meetings-list').innerHTML=meetings.map(m=>`
+    <div class="meeting-card">
+      <div class="meeting-header">
+        <div class="meeting-title">Meeting — ${new Date(m.date).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div class="meeting-date">${new Date(m.date).toLocaleDateString('en-GB')}</div>
+      </div>
+      <div class="meeting-summary">${m.summary||'No summary'}</div>
+      <div class="meeting-footer">${(m.attendees||[]).map(a=>`<span class="attendee-pill">${a}</span>`).join('')}<span class="badge badge-blue">${m.taskIds?.length||0} tasks</span><span class="badge badge-green">${m.decisions?.length||0} decisions</span></div>
+      ${m.decisions&&m.decisions.length?`<div class="meeting-decisions"><div class="meeting-decisions-title">Decisions Made</div>${m.decisions.map((d,i)=>`<div class="decision-item"><div class="decision-num">${i+1}</div>${d}</div>`).join('')}</div>`:''}
+      ${m.openQuestions&&m.openQuestions.length?`<div class="meeting-decisions" style="margin-top:10px"><div class="meeting-decisions-title" style="color:var(--secondary)">Open Questions</div>${m.openQuestions.map(q=>`<div class="decision-item">❓ ${q}</div>`).join('')}</div>`:''}
+    </div>`).join('')||'<div class="empty"><div class="empty-icon">📋</div>No meetings yet</div>';
+}
+
+function renderWeeklyReport(){
+  const tasks=getTasks();const now=new Date();
+  const done=tasks.filter(t=>t.status==='done');
+  const blocked=tasks.filter(t=>t.status==='blocked');
+  const inProgress=tasks.filter(t=>t.status==='in_progress');
+  const upcoming=tasks.filter(t=>t.status==='not_started');
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+
+  document.getElementById('weekly-report-container').innerHTML=`
+    <div class="weekly-report">
+      <div class="report-header">
+        <div class="report-title">Week ${getWeekNumber(now)} — Ten&See Report</div>
+        <div class="report-date">${weekStart.toLocaleDateString('en-GB')} — ${weekEnd.toLocaleDateString('en-GB')}</div>
+      </div>
+      <div class="report-section"><div class="report-section-title"><span style="color:var(--finance)">✅</span> DONE (${done.length})</div>
+        ${done.length?done.map(t=>`<div class="report-item"><span class="report-item-status" style="background:var(--finance)"></span>${t.title} — ${t.assignedTo}</div>`).join(''):'<div class="report-item" style="color:var(--text3)">Nothing completed yet</div>'}
+      </div>
+      <div class="report-section"><div class="report-section-title"><span style="color:var(--primary)">🚫</span> BLOCKED (${blocked.length})</div>
+        ${blocked.length?blocked.map(t=>`<div class="report-item"><span class="report-item-status" style="background:var(--primary)"></span>${t.title} — ${t.assignedTo}</div>`).join(''):'<div class="report-item" style="color:var(--text3)">No blocked tasks 🎉</div>'}
+      </div>
+      <div class="report-section"><div class="report-section-title"><span style="color:var(--tech)">▶️</span> IN PROGRESS (${inProgress.length})</div>
+        ${inProgress.length?inProgress.map(t=>`<div class="report-item"><span class="report-item-status" style="background:var(--tech)"></span>${t.title} — ${t.assignedTo} (${t.progress}%)</div>`).join(''):'<div class="report-item" style="color:var(--text3)">Nothing in progress</div>'}
+      </div>
+      <div class="report-section"><div class="report-section-title"><span style="color:var(--secondary)">📅</span> NOT STARTED (${upcoming.length})</div>
+        ${upcoming.slice(0,5).map(t=>`<div class="report-item"><span class="report-item-status" style="background:var(--secondary)"></span>${t.title} — ${t.assignedTo} · Due ${new Date(t.dueDate).toLocaleDateString('en-GB')}</div>`).join('')||'<div class="report-item" style="color:var(--text3)">All tasks in progress!</div>'}
+      </div>
+      <div class="report-section"><div class="report-section-title">💡 SUGGESTED NEXT MEETING AGENDA</div>
+        <div class="report-item">• Review ${blocked.length} blocked tasks and resolve dependencies</div>
+        <div class="report-item">• Confirm priorities for next week — ${upcoming.length} tasks pending</div>
+        <div class="report-item">• ${blocked.length>0?'⚠️ Schedule collision meeting for blocked items':'✅ No collision meeting needed'}</div>
+      </div>
+    </div>`;
+}
+
+function renderDept(){
+  const tasks=getTasks().filter(t=>t.department===currentDept);
+  const dept=DEPTS[currentDept];
+  const cols=['not_started','in_progress','done','blocked'];
+  const colLabels={not_started:'Not Started',in_progress:'In Progress',done:'Done',blocked:'Blocked'};
+  document.getElementById('dept-pipeline').innerHTML=cols.map(col=>{
+    const ct=tasks.filter(t=>t.status===col);
+    return `<div class="pipeline-col">
+      <div class="pipeline-header" style="${col==='done'?'color:var(--finance)':col==='blocked'?'color:var(--primary)':''}">${colLabels[col]}<div class="pipeline-count">${ct.length}</div></div>
+      <div class="pipeline-body">
+        ${ct.map(t=>`<div class="pipe-task" style="border-left-color:${dept.color}" onclick="openEditTask('${t.id}')">
+          <div class="pipe-task-title">${t.title}</div>
+          <div class="pipe-task-meta"><span class="tag tag-${t.priority==='primary'?'high':t.priority==='secondary'?'medium':'low'}">${t.priority}</span><span class="due-date">${t.assignedTo}</span></div>
+          <div style="height:3px;background:var(--bg4);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;background:${dept.color};width:${t.progress}%;border-radius:2px"></div></div>
+        </div>`).join('')||'<div class="empty" style="padding:20px;font-size:11px">No tasks</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ NLP DEEP PARSE ENGINE ============ */
+function getToday(){return new Date().toISOString().split('T')[0];}
+function addDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d.toISOString().split('T')[0];}
+function getWeekdayDate(dayName){const days=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];const today=new Date();const target=days.indexOf(dayName.toLowerCase());if(target===-1)return addDays(getToday(),7);let diff=target-today.getDay();if(diff<=0)diff+=7;return addDays(getToday(),diff);}
+
+function parseDeadline(text,contextDate){
+  const now=new Date(contextDate||getToday());
+  const lower=text.toLowerCase();
+  const isoMatch=text.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(isoMatch)return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  const fullDateMatch=text.match(/(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})/i);
+  if(fullDateMatch){const months={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};return `${fullDateMatch[3]}-${String(months[fullDateMatch[2].toLowerCase()]).padStart(2,'0')}-${String(fullDateMatch[1]).padStart(2,'0')}`;}
+  const shortDateMatch=text.match(/(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{4})/i);
+  if(shortDateMatch){const months={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};return `${shortDateMatch[3]}-${String(months[shortDateMatch[2].toLowerCase()]).padStart(2,'0')}-${String(shortDateMatch[1]).padStart(2,'0')}`;}
+  const dayMonthMatch=text.match(/(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)/i);
+  if(dayMonthMatch){const months={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};return `${now.getFullYear()}-${String(months[dayMonthMatch[2].toLowerCase()]).padStart(2,'0')}-${String(dayMonthMatch[1]).padStart(2,'0')}`;}
+  if(lower.includes('today'))return addDays(getToday(),0);
+  if(lower.includes('tomorrow'))return addDays(getToday(),1);
+  if(lower.includes('next week'))return addDays(getToday(),7);
+  if(lower.includes('end of week')){const dow=now.getDay();const daysUntilFriday=5-dow+(dow>=5?7:0);return addDays(getToday(),daysUntilFriday);}
+  if(lower.includes('end of month')){const eom=new Date(now.getFullYear(),now.getMonth()+1,0);return eom.toISOString().split('T')[0];}
+  if(lower.includes('mid july'))return `${now.getFullYear()}-07-15`;
+  const weekdayMatch=lower.match(/(?:by|before|due|deadline)\s+(?:next\s+)?(monday|tuesday|wednesday|thursday|friday)/);
+  if(weekdayMatch)return getWeekdayDate(weekdayMatch[1]);
+  const daysMatch=lower.match(/(\d+)\s+day(s)?/);
+  if(daysMatch)return addDays(getToday(),parseInt(daysMatch[1]));
+  return addDays(getToday(),3);
+}
+
+function detectDepartment(text){
+  const lower=text.toLowerCase();
+  let bestDept='ops',bestScore=0;
+  for(const [deptKey,dept] of Object.entries(DEPTS)){
+    let score=0;
+    for(const kw of dept.keywords){
+      const regex=new RegExp('\\b'+kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+      const matches=lower.match(regex);
+      if(matches)score+=matches.length;
+    }
+    if(score>bestScore){bestScore=score;bestDept=deptKey;}
+  }
+  return bestDept;
+}
+
+function normalizeName(n){
+  if(!n)return null;
+  const t=n.trim().toLowerCase();
+  if(t==='danny')return 'Danny';
+  if(t==='marwa')return 'Marwa';
+  if(t==='ansar')return 'Ansar';
+  return null;
+}
+
+function detectAssignee(text,dept){
+  const lower=text.toLowerCase();
+  const deptOwner=DEPTS[dept]?.owner;
+  if(lower.includes('danny'))return 'Danny';
+  if(lower.includes('marwa'))return 'Marwa';
+  if(lower.includes('ansar'))return 'Ansar';
+  if(deptOwner)return deptOwner;
+  return 'Ansar';
+}
+
+function detectPriority(text){
+  const lower=text.toLowerCase();
+  if(lower.includes('urgent')||lower.includes('asap')||lower.includes('critical')||lower.includes('priority one')||lower.includes('priority 1')||lower.includes('immediately')||lower.includes('right now')||lower.includes('deadline')||lower.includes('due soon'))return 'primary';
+  if(lower.includes('important')||lower.includes('should')||lower.includes('needs to')||lower.includes('next'))return 'secondary';
+  return 'parallel';
+}
+
+function generateFallback(text,dept){
+  const fallbacks={
+    tech:['Escalate to Danny for technical review','Group code review session','Bring in external consultant','Simplify scope and re-estimate'],
+    marketing:['Escalate to Marwa for creative direction','Outsource to agency','Reduce campaign scope','Delay launch and re-strategize'],
+    ops:['Escalate to Ansar for process review','Automate with tools','Delegate to assistant','Postpone and reschedule'],
+    finance:['Escalate to Ansar for financial review','Consult with accountant','Reduce budget allocation','Seek external funding advice'],
+    sales:['Escalate to Marwa for deal strategy','Involve founder in negotiation','Offer extended trial','Pivot to different segment'],
+    support:['Escalate to Danny for technical deep-dive','Create workaround documentation','Schedule hotfix sprint','Roll back to stable version']
+  };
+  const options=fallbacks[dept]||fallbacks.ops;
+  return options[Math.floor(Math.random()*options.length)];
+}
+
+function generateTaskId(){return 'task_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);}
+function generateMeetingId(){return 'meet_'+Date.now();}
+
+function generateSummary(text,tasks,decisionCount,questionCount){
+  const deptCounts={};
+  tasks.forEach(t=>{deptCounts[t.department]=(deptCounts[t.department]||0)+1;});
+  const topDept=Object.entries(deptCounts).sort((a,b)=>b[1]-a[1])[0];
+  let summary=`Meeting processed. `;
+  summary+=`Extracted ${tasks.length} tasks across ${Object.keys(deptCounts).length} departments. `;
+  summary+=`${decisionCount} decisions identified. `;
+  summary+=`${questionCount} open questions flagged for follow-up. `;
+  if(topDept)summary+=`Primary focus: ${DEPTS[topDept[0]]?.name||topDept[0]} (${topDept[1]} tasks). `;
+  const firstLine=text.split('\n')[0];
+  if(firstLine&&firstLine.length>10&&firstLine.length<100)summary+=`Context: "${firstLine.trim()}"`;
+  return summary;
+}
+
+function generateWeeklyRhythm(tasks,contextDate){
+  const weekStart=new Date(contextDate);
+  weekStart.setDate(weekStart.getDate()-weekStart.getDay()+1);
+  const days=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const rhythm=[];
+  for(let i=0;i<5;i++){
+    const dayDate=new Date(weekStart);dayDate.setDate(weekStart.getDate()+i);
+    const dayStr=dayDate.toISOString().split('T')[0];
+    const dayTasks=tasks.filter(t=>{const taskDate=new Date(t.dueDate);return taskDate.toISOString().split('T')[0]===dayStr;});
+    if(dayTasks.length>0)rhythm.push({day:days[i],date:dayStr,tasks:dayTasks,focus:dayTasks[0]?.department||'mixed'});
+  }
+  if(rhythm.length===0&&tasks.length>0){
+    const perDay=Math.ceil(tasks.length/5);
+    const taskCopy=[...tasks];
+    for(let i=0;i<5&&taskCopy.length>0;i++){
+      const dayTasks=taskCopy.splice(0,perDay);
+      if(dayTasks.length>0)rhythm.push({day:days[i],date:addDays(contextDate,i),tasks:dayTasks,focus:dayTasks[0]?.department||'mixed'});
+    }
+  }
+  return rhythm;
+}
+
+function deepParse(text){
+  const lines=text.split(/\n+/).filter(l=>l.trim().length>0);
+  const fullText=text;
+  const contextDate=document.getElementById('nlp-date').value||getToday();
+
+  // Decisions
+  const decisions=new Set();
+  const decisionPatterns=[
+    /(?:we\s+)?(?:decided|agreed|concluded|resolved|determined|settled|voted|chose|opted|committed|approved|authorized|confirmed|established|mandated|directed|instructed)\s+(?:that\s+)?(.+?)(?:\.|\n|$)/gi,
+    /(?:decision|resolution|conclusion|agreement|consensus)\s*:?\s*(.+?)(?:\.|\n|$)/gi,
+    /(?:let['']?s|we\s+will|we\s+shall|we\s+are\s+going\s+to)\s+(.+?)(?:\.|\n|$)/gi,
+    /(?:moving\s+forward|going\s+forward|from\s+now\s+on)\s*,?\s*(.+?)(?:\.|\n|$)/gi,
+    /(?:the\s+)?(?:team|group|we)\s+(?:agreed|decided|resolved)\s+(?:to|that)\s+(.+?)(?:\.|\n|$)/gi
+  ];
+  for(const pattern of decisionPatterns){
+    pattern.lastIndex=0;let match;
+    while((match=pattern.exec(fullText))!==null){const decision=match[1].trim();if(decision.length>10&&decision.length<300)decisions.add(decision);}
+  }
+  lines.forEach(line=>{
+    const lower=line.toLowerCase();
+    if((lower.includes('decided')||lower.includes('agreed')||lower.includes('resolution')||lower.includes('consensus')||lower.includes('final call'))&&line.length>15&&line.length<300){
+      const clean=line.replace(/^\s*[-•*\d.]+\s*/,'').trim();
+      if(clean.length>10)decisions.add(clean);
+    }
+    const implicitMatch=line.match(/(?:Danny|Marwa|Ansar|we)\s+(?:will|shall|are\s+going\s+to)\s+(.+?)(?:\.|\n|$)/i);
+    if(implicitMatch){const person=(line.match(/(?:Danny|Marwa|Ansar|we)/i)?.[0]||'We');decisions.add(person+' will '+implicitMatch[1].trim());}
+  });
+
+  // Action items / tasks
+  const rawActions=[];
+  const personPatterns=[
+    {regex:/(?:^|\n|\s)(Danny|Marwa|Ansar)\s*[:\-]?\s*(.+?)(?:\.|\n|$)/gi,source:'direct'},
+    {regex:/(Danny|Marwa|Ansar)\s+(?:will|shall|needs?\s+to|has?\s+to|must|should|going\s+to)\s+(.+?)(?:\.|\n|$)/gi,source:'modal'},
+    {regex:/(Danny|Marwa|Ansar)\s+(?:is|are)\s+(?:responsible|accountable)\s+(?:for|of)\s+(.+?)(?:\.|\n|$)/gi,source:'responsibility'}
+  ];
+  for(const pp of personPatterns){
+    pp.regex.lastIndex=0;let match;
+    while((match=pp.regex.exec(fullText))!==null){
+      const person=match[1];const actionText=match[2].trim();
+      if(actionText.length>5)rawActions.push({text:actionText,person,source:pp.source});
+    }
+  }
+  const imperativeVerbs='Build|Create|Develop|Design|Write|Draft|Prepare|Set\\s+up|Configure|Implement|Deploy|Launch|Test|Review|Audit|Analyze|Research|Investigate|Fix|Resolve|Update|Upgrade|Migrate|Integrate|Optimize|Refactor|Document|Present|Pitch|Propose|Negotiate|Schedule|Organize|Coordinate|Facilitate|Record|Summarize|Distribute|Communicate|Announce|Publish|Promote|Market|Sell|Close|Onboard|Train|Hire|Contract|Invoice|Pay|Budget|Forecast|Estimate|Quote|Price|Assess|Evaluate|Prioritize|Escalate|Delegate|Assign|Register|File|Trademark';
+  const impRegex=new RegExp('^(?:\\s*[-•*\\d.]+\\s*)?('+imperativeVerbs+')\\s+(.+?)(?:\\.|\\n|$)','gim');
+  let impMatch;
+  while((impMatch=impRegex.exec(fullText))!==null){
+    const actionText=impMatch[1]+' '+impMatch[2].trim();
+    rawActions.push({text:actionText,person:null,source:'imperative'});
+  }
+
+  const seen=new Set();
+  const tasks=[];
+  for(const action of rawActions){
+    const wordCount=action.text.trim().split(/\s+/).filter(Boolean).length;
+    // The 'direct' pattern (Name: rest-of-line) is noisy — it also catches short
+    // acknowledgements ("Agreed", "Ugh not again") and attendee-list headers
+    // ("Danny: ...Marwa, Ansar"). Require a longer, real sentence for that source only.
+    if(action.source==='direct'&&wordCount<5)continue;
+    if(/^[,;]/.test(action.text.trim()))continue;
+    if(/^(Danny|Marwa|Ansar)[,\s]*(Danny|Marwa|Ansar)?[,\s]*(Danny|Marwa|Ansar)?$/i.test(action.text.trim()))continue;
+
+    const key=action.text.toLowerCase().substring(0,40);
+    if(seen.has(key))continue;
+    seen.add(key);
+    const dept=detectDepartment(action.text);
+    const assignee=normalizeName(action.person)||detectAssignee(action.text,dept);
+    const priority=detectPriority(action.text);
+    const deadline=parseDeadline(action.text,contextDate);
+    const fallback=generateFallback(action.text,dept);
+    tasks.push({
+      id:generateTaskId(),
+      title:action.text.charAt(0).toUpperCase()+action.text.slice(1),
+      department:dept,assignedTo:assignee,priority:priority,dueDate:deadline,
+      status:'not_started',progress:0,
+      fallback:{action:fallback,triggered:false},
+      dependencies:[],meetingId:null,createdAt:new Date().toISOString(),
+      source:action.source,confidence:action.person?'high':'medium'
+    });
+  }
+
+  // Open questions
+  const questions=[];
+  const qPattern=/(.+?\?)/g;let qMatch;
+  while((qMatch=qPattern.exec(fullText))!==null){const q=qMatch[1].trim();if(q.length>10&&q.length<200)questions.push(q);}
+  const openQPattern=/(?:open\s+questions?|questions?|concerns?|issues?)\s*:?\s*\n?((?:.+?\n?)+?)(?:\n\n|\n[A-Z]|$)/i;
+  const openQMatch=fullText.match(openQPattern);
+  if(openQMatch){
+    const qLines=openQMatch[1].split('\n').filter(l=>l.trim().length>5);
+    for(const ql of qLines){const clean=ql.replace(/^\s*[-•*\d.]+\s*/,'').trim();if(clean.length>10&&!questions.includes(clean))questions.push(clean);}
+  }
+
+  const summary=generateSummary(fullText,tasks,decisions.size,questions.length);
+  const deptDist={};
+  for(const t of tasks)deptDist[t.department]=(deptDist[t.department]||0)+1;
+  const memberLoad={Danny:0,Marwa:0,Ansar:0};
+  for(const t of tasks)memberLoad[t.assignedTo]=(memberLoad[t.assignedTo]||0)+PRIORITY_WEIGHTS[t.priority];
+  const weeklyRhythm=generateWeeklyRhythm(tasks,contextDate);
+
+  const meetingRecord={
+    id:generateMeetingId(),date:contextDate,
+    attendees:document.getElementById('nlp-attendees').value.split(',').map(s=>s.trim()),
+    summary:summary,decisions:Array.from(decisions).slice(0,8),
+    taskIds:tasks.map(t=>t.id),openQuestions:questions.slice(0,5),
+    nextMeetingSuggested:addDays(contextDate,3),status:'confirmed'
+  };
+
+  return{summary,decisions:Array.from(decisions).slice(0,8),tasks:tasks.slice(0,12),questions:questions.slice(0,5),deptDist,memberLoad,weeklyRhythm,meetingRecord,rawText:fullText};
+}
+
+function fastParse(text){
+  const result=deepParse(text);
+  result.tasks=result.tasks.slice(0,6);
+  result.decisions=result.decisions.slice(0,4);
+  return result;
+}
+
+function runDeepParse(){
+  const text=document.getElementById('nlp-textarea').value.trim();
+  if(!text){showToast('Paste a transcript first','error');return;}
+  const mode=document.getElementById('nlp-mode').value;
+
+  document.getElementById('parse-result').style.display='none';
+  document.getElementById('parse-loading').style.display='flex';
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+
+  let progress=0;
+  const bar=document.getElementById('parse-bar');
+  const status=document.getElementById('parse-status-text');
+  const stages=['stage-1','stage-2','stage-3','stage-4','stage-5'];
+  const stageNames=['Tokenizing text...','Extracting entities...','Classifying departments...','Assigning owners...','Building weekly rhythm...'];
+
+  const interval=setInterval(()=>{
+    progress+=Math.random()*20;
+    if(progress>100)progress=100;
+    bar.style.width=progress+'%';
+    const stageIdx=Math.min(Math.floor(progress/20),4);
+    status.textContent=stageNames[stageIdx];
+    for(let i=0;i<=stageIdx;i++){const el=document.getElementById(stages[i]);if(el)el.classList.add('active');}
+    if(progress>=100){
+      clearInterval(interval);
+      setTimeout(()=>{
+        const result=mode==='deep'?deepParse(text):fastParse(text);
+        parsedData=result;
+        displayParseResults(result);
+      },250);
+    }
+  },150);
+}
+
+function displayParseResults(result){
+  document.getElementById('parse-loading').style.display='none';
+  document.getElementById('parse-result').style.display='block';
+
+  document.getElementById('stat-nlp-decisions').textContent=result.decisions.length;
+  document.getElementById('stat-nlp-tasks').textContent=result.tasks.length;
+  document.getElementById('stat-nlp-questions').textContent=result.questions.length;
+  document.getElementById('stat-nlp-depts').textContent=Object.keys(result.deptDist).length;
+  document.getElementById('parse-summary').textContent=result.summary;
+
+  document.getElementById('parse-decisions').innerHTML=result.decisions.map((d,i)=>`<div class="decision-item"><div class="decision-num">${i+1}</div>${d}</div>`).join('')||'<div style="color:var(--text3);font-size:13px;padding:10px">No explicit decisions detected. Tasks extracted from action items.</div>';
+
+  document.getElementById('parse-tasks').innerHTML=result.tasks.map(t=>{
+    const dept=DEPTS[t.department];
+    const confidenceBadge=t.confidence==='high'?'<span class="confidence-high">High Confidence</span>':'<span class="confidence-med">Medium Confidence</span>';
+    return `<div class="extracted-task" style="border-left-color:${dept.color}">
+      <div class="et-header"><div class="et-title">${t.title}</div><span class="badge ${t.priority==='primary'?'badge-red':t.priority==='secondary'?'badge-amber':'badge-green'}">${t.priority}</span></div>
+      <div class="et-meta"><span class="tag tag-${t.department}">${dept.name}</span><span class="badge badge-blue">${t.assignedTo}</span><span class="due-date">📅 ${t.dueDate}</span>${confidenceBadge}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">↳ Fallback: ${t.fallback.action}</div>
+    </div>`;
+  }).join('')||'<div style="color:var(--text3);font-size:13px;padding:10px">No tasks detected.</div>';
+
+  document.getElementById('dept-distribution').innerHTML=Object.entries(result.deptDist).map(([deptKey,count])=>{
+    const dept=DEPTS[deptKey];
+    return `<div class="dept-pill" style="background:${dept.color}22;color:${dept.color}">${dept.name}: ${count}</div>`;
+  }).join('')||'<div style="color:var(--text3);font-size:13px">No department data</div>';
+
+  document.getElementById('member-workload').innerHTML=Object.entries(result.memberLoad).map(([name,load])=>{
+    const user=USERS[name];
+    const capacityPct=Math.min((load/user.capacity)*100,100);
+    const overload=load>user.capacity;
+    return `<div class="member-card">
+      <div class="member-avatar-sm" style="background:${user.color}">${name[0]}</div>
+      <div class="member-name-sm">${name}</div>
+      <div class="member-count" style="color:${overload?'var(--primary)':user.color}">${load}</div>
+      <div class="member-label">${overload?'OVERLOADED':'Priority Points'}</div>
+      <div style="height:3px;background:var(--bg4);border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:100%;background:${overload?'var(--primary)':user.color};width:${capacityPct}%;border-radius:2px;transition:width 0.5s"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('weekly-rhythm').innerHTML=result.weeklyRhythm.map(r=>{
+    const focusDept=DEPTS[r.focus]||{color:'#888899',name:'Mixed'};
+    return `<div class="rhythm-day">
+      <div class="rhythm-header"><span class="rhythm-day-name">${r.day}</span><span class="rhythm-focus" style="background:${focusDept.color}22;color:${focusDept.color}">${focusDept.name}</span></div>
+      <div class="rhythm-tasks">${r.tasks.map(t=>`• ${t.title} — <strong>${t.assignedTo}</strong> (${t.priority})`).join('<br>')}</div>
+    </div>`;
+  }).join('')||'<div style="color:var(--text3);font-size:13px;padding:10px">No tasks to schedule this week.</div>';
+
+  document.getElementById('parse-questions').innerHTML=result.questions.length?result.questions.map(q=>`<div class="question-item">❓ ${q}</div>`).join(''):'<div class="question-item">No open questions.</div>';
+  document.getElementById('parse-next').textContent=result.meetingRecord.nextMeetingSuggested;
+}
+
+function loadDemo(type){
+  document.getElementById('nlp-textarea').value=DEMOS[type];
+  document.getElementById('nlp-date').value=getToday();
+}
+
+function clearAll(){
+  document.getElementById('nlp-textarea').value='';
+  document.getElementById('parse-result').style.display='none';
+  document.getElementById('parse-loading').style.display='none';
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+  document.getElementById('parse-bar').style.width='0%';
+  parsedData=null;
+}
+
+/* This is the key integration point: pushes deep-parsed tasks + meeting record
+   straight into the SAME localStorage the rest of the dashboard reads from. */
+function confirmAndSave(){
+  if(!parsedData){showToast('Run a parse first','error');return;}
+  const tasks=getTasks();
+  const meetings=getMeetings();
+  const meetId=parsedData.meetingRecord.id;
+
+  parsedData.tasks.forEach(t=>{
+    tasks.push({...t,meetingId:meetId});
+  });
+
+  meetings.push({...parsedData.meetingRecord});
+
+  setTasks(tasks);
+  setMeetings(meetings);
+
+  showToast('Meeting saved! '+parsedData.tasks.length+' tasks distributed to the dashboard','success');
+  clearAll();
+  renderOverview();renderMyTasks();renderTimeline();renderMeetings();renderWeeklyReport();
+  showPage('meetings',document.querySelector('.nav-item[onclick*="meetings"]'));
+}
+
+/* ============ MODALS ============ */
+function openModal(type){
+  if(type==='task')document.getElementById('add-task-modal').classList.add('open');
+  if(type==='meeting')document.getElementById('add-meeting-modal').classList.add('open');
+}
+function closeModal(type){document.getElementById(type+'-modal').classList.remove('open');}
+
+function openEditTask(taskId){
+  const task=getTasks().find(t=>t.id===taskId);if(!task)return;
+  editingTaskId=taskId;
+  document.getElementById('edit-task-title').value=task.title;
+  document.getElementById('edit-task-dept').value=task.department;
+  document.getElementById('edit-task-owner').value=task.assignedTo;
+  document.getElementById('edit-task-priority').value=task.priority;
+  document.getElementById('edit-task-status').value=task.status;
+  document.getElementById('edit-task-due').value=task.dueDate;
+  document.getElementById('edit-task-progress').value=task.progress||0;
+  document.getElementById('edit-task-fallback').value=task.fallback?.action||'';
+  document.getElementById('edit-task-modal').classList.add('open');
+}
+
+function saveTaskEdit(){
+  const tasks=getTasks();const task=tasks.find(t=>t.id===editingTaskId);if(!task)return;
+  task.title=document.getElementById('edit-task-title').value;
+  task.department=document.getElementById('edit-task-dept').value;
+  task.assignedTo=document.getElementById('edit-task-owner').value;
+  task.priority=document.getElementById('edit-task-priority').value;
+  task.status=document.getElementById('edit-task-status').value;
+  task.dueDate=document.getElementById('edit-task-due').value;
+  task.progress=parseInt(document.getElementById('edit-task-progress').value)||0;
+  task.fallback={action:document.getElementById('edit-task-fallback').value||'escalate to group',triggered:task.fallback?.triggered||false};
+  setTasks(tasks);closeModal('edit-task');showToast('Task updated','success');renderOverview();renderMyTasks();renderTimeline();renderDept();
+}
+
+function deleteTask(){
+  if(!confirm('Delete this task?'))return;
+  setTasks(getTasks().filter(t=>t.id!==editingTaskId));
+  closeModal('edit-task');showToast('Task deleted','success');renderOverview();renderMyTasks();renderTimeline();
+}
+
+function saveNewTask(){
+  const title=document.getElementById('add-task-title').value;if(!title){showToast('Add a title','error');return;}
+  const tasks=getTasks();
+  tasks.push({id:'task_'+Date.now(),title,department:document.getElementById('add-task-dept').value,assignedTo:document.getElementById('add-task-owner').value,priority:document.getElementById('add-task-priority').value,status:'not_started',dueDate:document.getElementById('add-task-due').value,progress:0,fallback:{action:document.getElementById('add-task-fallback').value||'escalate to group',triggered:false},dependencies:[],meetingId:null,createdAt:new Date().toISOString()});
+  setTasks(tasks);closeModal('add-task');showToast('Task created','success');
+  document.getElementById('add-task-title').value='';document.getElementById('add-task-fallback').value='';
+  renderOverview();renderMyTasks();renderTimeline();
+}
+
+function saveNewMeeting(){
+  const meetings=getMeetings();
+  meetings.push({id:'meet_'+Date.now(),date:document.getElementById('add-meeting-date').value,attendees:document.getElementById('add-meeting-attendees').value.split(',').map(s=>s.trim()),summary:document.getElementById('add-meeting-summary').value,decisions:document.getElementById('add-meeting-decisions').value.split('\n').filter(d=>d.trim()),taskIds:[],status:'confirmed',openQuestions:document.getElementById('add-meeting-questions').value.split('\n').filter(q=>q.trim()),nextMeetingSuggested:null});
+  setMeetings(meetings);closeModal('add-meeting');showToast('Meeting saved','success');renderMeetings();renderOverview();
+  document.getElementById('add-meeting-summary').value='';document.getElementById('add-meeting-decisions').value='';document.getElementById('add-meeting-questions').value='';
+}
+
+/* ============ FALLBACKS / COLLISIONS / TOAST ============ */
+function checkFallbacks(){
+  const tasks=getTasks();const now=new Date();let triggered=0;
+  tasks.forEach(t=>{if(t.status==='done'||t.status==='blocked')return;const hoursOverdue=(now-new Date(t.dueDate))/3600000;if(hoursOverdue>24&&!t.fallback?.triggered){t.fallback=t.fallback||{};t.fallback.triggered=true;triggered++;}});
+  if(triggered>0){setTasks(tasks);showToast(triggered+' fallback(s) triggered!','error');}
+}
+
+function checkCollisions(){
+  const blocked=getTasks().filter(t=>t.status==='blocked');
+  if(blocked.length>=2){document.getElementById('collision-banner').style.display='flex';document.getElementById('collision-text').innerHTML=`<strong>${blocked.length} tasks blocked.</strong> Collision meeting recommended.`;}
+  const overdue=getTasks().filter(t=>new Date(t.dueDate)<new Date()&&t.status!=='done');
+  if(overdue.length>0){document.getElementById('overview-suggestion').style.display='flex';document.getElementById('suggestion-text').innerHTML=`<strong>${overdue.length} task(s) overdue.</strong> Consider reassigning or extending deadlines.`;}
+}
+
+function scheduleCollisionMeeting(){showToast('Collision meeting scheduled!','success');document.getElementById('collision-banner').style.display='none';}
+
+function showToast(message,type){
+  const container=document.getElementById('toast-container');const toast=document.createElement('div');
+  toast.className='toast toast-'+type;
+  toast.innerHTML=`<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);setTimeout(()=>toast.remove(),4000);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));});
+
+init();
+</script>
+</body>
+</html>
