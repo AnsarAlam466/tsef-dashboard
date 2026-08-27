@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSEF — Ten&See Execution Framework</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --bg4: #222232;
+    --border: #2a2a3a;
+    --text: #e8e8f0;
+    --text2: #888899;
+    --text3: #555566;
+    --tech: #00d4ff;
+    --tech-bg: rgba(0,212,255,0.08);
+    --marketing: #ff6b9d;
+    --marketing-bg: rgba(255,107,157,0.08);
+    --finance: #00ff88;
+    --finance-bg: rgba(0,255,136,0.08);
+    --ops: #ff9500;
+    --ops-bg: rgba(255,149,0,0.08);
+    --sales: #ffd700;
+    --sales-bg: rgba(255,215,0,0.08);
+    --support: #bf5af2;
+    --support-bg: rgba(191,90,242,0.08);
+    --primary: #ff4444;
+    --secondary: #ffaa00;
+    --parallel: #00cc66;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; margin-top: 2px; }
+  .sidebar-section { padding: 16px 12px 8px; }
+  .sidebar-label { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius);
+    cursor: pointer; font-size: 13px; color: var(--text2);
+    transition: all 0.15s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--bg4); color: var(--text); font-weight: 500; }
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+  .dept-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  .sidebar-bottom { margin-top: auto; padding: 16px 12px; border-top: 1px solid var(--border); }
+  .user-badge { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--bg3); border-radius: var(--radius); }
+  .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--ops); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #000; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; font-weight: 600; }
+  .user-role { font-size: 10px; color: var(--text3); }
+
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-title { font-size: 16px; font-weight: 700; }
+  .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    padding: 7px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s; font-family: 'Inter', sans-serif;
+  }
+  .btn-primary { background: var(--text); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text3); }
+
+  .content { padding: 28px; flex: 1; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .stat-label { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 14px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+
+  .person-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; }
+  .person-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .person-card.danny::before { background: var(--tech); }
+  .person-card.marwa::before { background: var(--marketing); }
+  .person-card.ansar::before { background: var(--ops); }
+
+  .person-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .person-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #000; }
+  .person-name { font-size: 14px; font-weight: 700; }
+  .person-dept { font-size: 11px; color: var(--text3); }
+  .task-count-row { display: flex; gap: 12px; margin-bottom: 14px; }
+  .task-count { flex: 1; background: var(--bg3); border-radius: var(--radius); padding: 10px; text-align: center; }
+  .tc-num { font-size: 20px; font-weight: 800; }
+  .tc-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .health-bar { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .health-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+
+  .task-item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px;
+    background: var(--bg3); border-radius: var(--radius); margin-bottom: 8px;
+    border-left: 3px solid transparent; cursor: pointer; transition: all 0.15s;
+  }
+  .task-item:hover { background: var(--bg4); }
+  .task-item.primary { border-left-color: var(--primary); }
+  .task-item.secondary { border-left-color: var(--secondary); }
+  .task-item.parallel { border-left-color: var(--parallel); }
+  .task-item.overdue { box-shadow: inset 0 0 0 1px rgba(255,68,68,0.25); }
+
+  .task-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+  .task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; letter-spacing: 0.3px; }
+  .tag-tech { background: var(--tech-bg); color: var(--tech); }
+  .tag-marketing { background: var(--marketing-bg); color: var(--marketing); }
+  .tag-finance { background: var(--finance-bg); color: var(--finance); }
+  .tag-ops { background: var(--ops-bg); color: var(--ops); }
+  .tag-sales { background: var(--sales-bg); color: var(--sales); }
+  .tag-support { background: var(--support-bg); color: var(--support); }
+  .tag-high { background: rgba(255,68,68,0.12); color: #ff6666; }
+  .tag-medium { background: rgba(255,170,0,0.12); color: #ffbb33; }
+  .tag-low { background: rgba(0,204,102,0.12); color: #33dd77; }
+
+  .due-date { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .due-overdue { color: var(--primary); }
+
+  .task-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 600; flex-shrink: 0; }
+  .status-done { background: rgba(0,255,136,0.12); color: var(--finance); }
+  .status-progress { background: rgba(0,212,255,0.12); color: var(--tech); }
+  .status-blocked { background: rgba(255,68,68,0.12); color: var(--primary); }
+  .status-notstarted { background: var(--bg4); color: var(--text3); }
+
+  .nlp-container { max-width: 800px; }
+  .nlp-textarea {
+    width: 100%; min-height: 220px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px; color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 14px; line-height: 1.6; resize: vertical; outline: none; margin-bottom: 14px;
+  }
+  .nlp-textarea:focus { border-color: var(--text3); }
+  .nlp-meta { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .nlp-meta input, .nlp-meta select {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; flex: 1; min-width: 140px;
+  }
+
+  .parse-result { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 20px; display: none; }
+  .parse-result.visible { display: block; }
+  .result-section { margin-bottom: 20px; }
+  .result-label { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .decision-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 6px; font-size: 13px; }
+  .decision-num { width: 20px; height: 20px; background: var(--bg4); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text2); flex-shrink: 0; }
+  .extracted-task { background: var(--bg3); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; border-left: 3px solid transparent; }
+  .et-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .et-title { font-size: 13px; font-weight: 600; }
+  .et-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+  .timeline-header { display: flex; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; overflow: hidden; }
+  .timeline-corner { width: 160px; min-width: 160px; padding: 14px 16px; border-right: 1px solid var(--border); font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .week-header { flex: 1; padding: 14px 16px; border-right: 1px solid var(--border); text-align: center; }
+  .week-header:last-child { border-right: none; }
+  .week-num { font-size: 11px; font-weight: 700; color: var(--text2); }
+  .week-dates { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  .timeline-body { background: var(--bg2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }
+  .timeline-row { display: flex; border-bottom: 1px solid var(--border); min-height: 80px; }
+  .timeline-row:last-child { border-bottom: none; }
+  .dept-label { width: 160px; min-width: 160px; padding: 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .dept-name { font-size: 12px; font-weight: 700; }
+  .dept-owner { font-size: 10px; color: var(--text3); }
+  .timeline-cell { flex: 1; padding: 10px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+  .timeline-cell:last-child { border-right: none; }
+
+  .gantt-task { padding: 7px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; border-left: 3px solid transparent; }
+  .gantt-task:hover { opacity: 0.8; }
+  .gantt-task-name { margin-bottom: 2px; }
+  .gantt-task-meta { font-size: 10px; opacity: 0.7; font-weight: 400; }
+  .gantt-progress { height: 2px; background: rgba(255,255,255,0.15); border-radius: 1px; margin-top: 5px; overflow: hidden; }
+  .gantt-fill { height: 100%; border-radius: 1px; background: rgba(255,255,255,0.5); }
+
+  .meeting-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.15s; }
+  .meeting-card:hover { border-color: var(--text3); }
+  .meeting-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .meeting-title { font-size: 15px; font-weight: 700; }
+  .meeting-date { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .meeting-summary { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+  .meeting-footer { display: flex; gap: 8px; align-items: center; }
+  .attendee-pill { font-size: 10px; padding: 3px 8px; background: var(--bg3); border-radius: 20px; color: var(--text2); font-weight: 500; }
+
+  .dept-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .pipeline-col { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .pipeline-header { padding: 12px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .pipeline-count { width: 20px; height: 20px; background: var(--bg4); border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .pipeline-body { padding: 10px; min-height: 200px; }
+  .pipe-task { background: var(--bg3); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; cursor: pointer; border-left: 3px solid transparent; font-size: 12px; }
+  .pipe-task-title { font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+  .pipe-task-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  .hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .badge-green { background: rgba(0,255,136,0.12); color: var(--finance); }
+  .badge-red { background: rgba(255,68,68,0.12); color: #ff6666; }
+  .badge-amber { background: rgba(255,170,0,0.12); color: #ffbb33; }
+  .badge-blue { background: rgba(0,212,255,0.12); color: var(--tech); }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 520px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .form-input, .form-select, .form-textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; color: var(--text); font-size: 13px; outline: none; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  .loading-dots { display: inline-flex; gap: 4px; }
+  .loading-dots span { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--bg4); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 18px; border-radius: var(--radius); font-size: 13px;
+    z-index: 200; opacity: 0; transform: translateY(10px); transition: all 0.25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">Ten&See</div>
+      <div class="logo-sub">TSEF v1.0</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <div class="nav-item active" data-page="overview" onclick="showPage('overview', this)"><span class="nav-icon">⚡</span> Overview</div>
+      <div class="nav-item" data-page="mytasks" onclick="showPage('mytasks', this)"><span class="nav-icon">✅</span> My Tasks</div>
+      <div class="nav-item" data-page="timeline" onclick="showPage('timeline', this)"><span class="nav-icon">📊</span> Timeline</div>
+      <div class="nav-item" data-page="meetings" onclick="showPage('meetings', this)"><span class="nav-icon">📋</span> Meetings</div>
+      <div class="nav-item" data-page="nlp" onclick="showPage('nlp', this)"><span class="nav-icon">🧠</span> NLP Input</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Departments</div>
+      <div class="nav-item" data-page="dept" data-dept="tech" onclick="showPage('dept', this); setDept('tech')"><span class="dept-dot" style="background:var(--tech)"></span> Product & Tech</div>
+      <div class="nav-item" data-page="dept" data-dept="marketing" onclick="showPage('dept', this); setDept('marketing')"><span class="dept-dot" style="background:var(--marketing)"></span> Marketing</div>
+      <div class="nav-item" data-page="dept" data-dept="ops" onclick="showPage('dept', this); setDept('ops')"><span class="dept-dot" style="background:var(--ops)"></span> Operations</div>
+      <div class="nav-item" data-page="dept" data-dept="finance" onclick="showPage('dept', this); setDept('finance')"><span class="dept-dot" style="background:var(--finance)"></span> Finance</div>
+      <div class="nav-item" data-page="dept" data-dept="sales" onclick="showPage('dept', this); setDept('sales')"><span class="dept-dot" style="background:var(--sales)"></span> Sales</div>
+      <div class="nav-item" data-page="dept" data-dept="support" onclick="showPage('dept', this); setDept('support')"><span class="dept-dot" style="background:var(--support)"></span> Tech Support</div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-badge">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name">Ansar</div>
+          <div class="user-role">Operations Head</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Overview</div>
+        <div class="topbar-sub" id="topbar-sub">Ten&See Execution Framework</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" onclick="openModal('task')">+ Add Task</button>
+        <button class="btn btn-primary" onclick="openModal('meeting')">+ New Meeting</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page active" id="page-overview">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Total Tasks</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">Across all departments</div></div>
+          <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value" style="color:var(--tech)" id="stat-progress">0</div><div class="stat-sub">Active right now</div></div>
+          <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" style="color:var(--primary)" id="stat-overdue">0</div><div class="stat-sub">Need attention</div></div>
+          <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" style="color:var(--finance)" id="stat-done">0</div><div class="stat-sub">This week</div></div>
+        </div>
+
+        <div class="three-col" id="person-cards"></div>
+
+        <div class="two-col">
+          <div><div class="section-title">Recent Tasks</div><div id="overview-tasks"></div></div>
+          <div><div class="section-title">Recent Meetings</div><div id="overview-meetings"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-mytasks">
+        <div style="max-width:680px">
+          <div style="margin-bottom:20px"><div class="section-title" style="color:var(--primary);margin-bottom:10px">🔴 Primary — Do First</div><div id="tasks-primary"></div></div>
+          <div style="margin-bottom:20px"><div class="section-title" style="color:var(--secondary);margin-bottom:10px">🟡 Secondary — Do Next</div><div id="tasks-secondary"></div></div>
+          <div style="margin-bottom:20px"><div class="section-title" style="color:var(--parallel);margin-bottom:10px">🟢 Parallel — Background</div><div id="tasks-parallel"></div></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-timeline">
+        <div style="margin-bottom:20px;display:flex;gap:16px;align-items:center">
+          <div class="section-title" style="margin-bottom:0" id="timeline-title">4-Week Rolling Timeline</div>
+          <div style="display:flex;gap:8px;margin-left:auto" id="timeline-badges"></div>
+        </div>
+        <div style="overflow-x:auto"><div style="min-width:700px" id="timeline-root"></div></div>
+        <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap" id="timeline-legend"></div>
+      </div>
+
+      <div class="page" id="page-meetings"><div style="max-width:720px" id="meetings-list"></div></div>
+
+      <div class="page" id="page-nlp">
+        <div class="nlp-container">
+          <div class="section-title" style="margin-bottom:16px">Paste Meeting Transcript</div>
+          <div class="nlp-meta">
+            <input type="date" id="nlp-date">
+            <select id="nlp-attendees">
+              <option value="Danny,Marwa,Ansar">All 3 — Danny, Marwa, Ansar</option>
+              <option value="Danny,Ansar">Danny + Ansar</option>
+              <option value="Marwa,Ansar">Marwa + Ansar</option>
+              <option value="Danny,Marwa">Danny + Marwa</option>
+            </select>
+          </div>
+          <textarea class="nlp-textarea" id="nlp-input" placeholder="Paste your raw meeting notes here — WhatsApp messages, voice note transcript, bullet points, anything."></textarea>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="parseMeeting()" id="parse-btn">Parse with TSEF</button>
+            <button class="btn btn-ghost" onclick="loadSample()">Load Sample</button>
+          </div>
+          <div class="parse-result" id="parse-result">
+            <div class="result-section"><div class="result-label">Summary</div><div id="result-summary" style="font-size:14px;line-height:1.6;color:var(--text2)"></div></div>
+            <hr class="hr">
+            <div class="result-section"><div class="result-label">Decisions Made</div><div id="result-decisions"></div></div>
+            <hr class="hr">
+            <div class="result-section"><div class="result-label">Tasks Extracted</div><div id="result-tasks"></div></div>
+            <hr class="hr">
+            <div class="result-section"><div class="result-label">Open Questions</div><div id="result-questions"></div></div>
+            <div style="display:flex;gap:10px;margin-top:20px">
+              <button class="btn btn-primary" onclick="saveToSystem()">Confirm & Save</button>
+              <button class="btn btn-ghost" onclick="clearParse()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-dept">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
+          <div id="dept-icon" style="font-size:28px"></div>
+          <div><div id="dept-title" style="font-size:20px;font-weight:800"></div><div id="dept-owner-label" style="font-size:12px;color:var(--text3)"></div></div>
+          <div id="dept-badge" style="margin-left:auto"></div>
+        </div>
+        <div class="dept-pipeline" id="dept-pipeline">
+          <div class="pipeline-col"><div class="pipeline-header">Not Started <div class="pipeline-count" id="col-count-0">0</div></div><div class="pipeline-body" id="col-notstarted"></div></div>
+          <div class="pipeline-col"><div class="pipeline-header">In Progress <div class="pipeline-count" id="col-count-1">0</div></div><div class="pipeline-body" id="col-progress"></div></div>
+          <div class="pipeline-col"><div class="pipeline-header">Done <div class="pipeline-count" id="col-count-2">0</div></div><div class="pipeline-body" id="col-done"></div></div>
+          <div class="pipeline-col"><div class="pipeline-header" style="color:#ff6666">Blocked <div class="pipeline-count" id="col-count-3">0</div></div><div class="pipeline-body" id="col-blocked"></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title">Add Task</div>
+    <div class="form-group"><label class="form-label">Task Title</label><input class="form-input" id="new-task-title" placeholder="e.g. Set up WhatsApp API keys"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Department</label><select class="form-select" id="new-task-dept"><option value="tech">Product & Tech</option><option value="marketing">Marketing</option><option value="ops">Operations</option><option value="finance">Finance</option><option value="sales">Sales</option><option value="support">Tech Support</option></select></div>
+      <div class="form-group"><label class="form-label">Assigned To</label><select class="form-select" id="new-task-person"><option value="Danny">Danny</option><option value="Marwa">Marwa</option><option value="Ansar">Ansar</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="new-task-priority"><option value="primary">🔴 Primary</option><option value="secondary">🟡 Secondary</option><option value="parallel">🟢 Parallel</option></select></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" type="date" id="new-task-due"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Fallback (if not done)</label><input class="form-input" id="new-task-fallback" placeholder="e.g. Escalate to Ansar"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('task')">Cancel</button><button class="btn btn-primary" onclick="addTask()">Add Task</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-meeting">
+  <div class="modal">
+    <div class="modal-title">Log Meeting</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="new-meet-date"></div>
+      <div class="form-group"><label class="form-label">Attendees</label><select class="form-select" id="new-meet-attendees"><option value="Danny,Marwa,Ansar">All 3</option><option value="Danny,Ansar">Danny + Ansar</option><option value="Marwa,Ansar">Marwa + Ansar</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Meeting Title</label><input class="form-input" id="new-meet-title" placeholder="e.g. TSEF Planning Session"></div>
+    <div class="form-group"><label class="form-label">Summary</label><textarea class="form-textarea" id="new-meet-summary" placeholder="What was this meeting about?"></textarea></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('meeting')">Cancel</button><button class="btn btn-primary" onclick="addMeeting()">Save Meeting</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-task">
+  <div class="modal">
+    <div class="modal-title">Edit Task</div>
+    <input type="hidden" id="edit-task-id">
+    <div class="form-group"><label class="form-label">Task Title</label><input class="form-input" id="edit-task-title"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="edit-task-status"><option value="not_started">Not Started</option><option value="in_progress">In Progress</option><option value="done">Done</option><option value="blocked">Blocked</option></select></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" type="date" id="edit-task-due"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="edit-task-priority"><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="parallel">Parallel</option></select></div>
+      <div class="form-group"><label class="form-label">Assigned To</label><select class="form-select" id="edit-task-person"><option value="Danny">Danny</option><option value="Marwa">Marwa</option><option value="Ansar">Ansar</option></select></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('edit-task')">Cancel</button><button class="btn btn-primary" onclick="saveTaskEdit()">Save</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEPTS = {
+  tech:      { name: 'Product & Technology', icon: '💻', color: '#00d4ff', owner: 'Danny' },
+  marketing: { name: 'Marketing & Growth',   icon: '📣', color: '#ff6b9d', owner: 'Marwa' },
+  ops:       { name: 'Operations & Admin',    icon: '🛠', color: '#ff9500', owner: 'Ansar' },
+  finance:   { name: 'Finance & Strategy',   icon: '💰', color: '#00ff88', owner: 'TBD' },
+  sales:     { name: 'Sales & Biz Dev',      icon: '💼', color: '#ffd700', owner: 'TBD' },
+  support:   { name: 'Technical Support',    icon: '🔧', color: '#bf5af2', owner: 'TBD' },
+};
+
+const PEOPLE = {
+  Danny: { dept: 'Product & Technology', color: 'var(--tech)', cls: 'danny', avatar: 'D' },
+  Marwa: { dept: 'Marketing & Growth', color: 'var(--marketing)', cls: 'marwa', avatar: 'M' },
+  Ansar: { dept: 'Operations', color: 'var(--ops)', cls: 'ansar', avatar: 'A' },
+};
+
+const TIMELINE_DEPTS = ['tech', 'marketing', 'ops', 'finance'];
+const STORAGE_KEY = 'tsef_data_v1';
+const CURRENT_USER = 'Ansar';
+
+const SEED_TASKS = [
+  { id:1, title:'New UI Draft — 3 pages, reel-style', dept:'tech', person:'Danny', priority:'primary', status:'in_progress', due:'2026-07-01', fallback:'Escalate to Ansar' },
+  { id:2, title:'Confirm Azure VM stable — document what is live', dept:'tech', person:'Danny', priority:'primary', status:'not_started', due:'2026-07-01', fallback:'Group meeting' },
+  { id:3, title:'TSEF backend setup — MongoDB + Express routes', dept:'tech', person:'Danny', priority:'secondary', status:'not_started', due:'2026-07-12', fallback:'Ansar builds with Cursor' },
+  { id:4, title:'Top 3 marketing ideas — angle, platform, feeling', dept:'marketing', person:'Marwa', priority:'primary', status:'in_progress', due:'2026-07-01', fallback:'Ansar shortlists' },
+  { id:5, title:'Cinematic intro concept — storyline and feeling', dept:'marketing', person:'Marwa', priority:'primary', status:'not_started', due:'2026-07-01', fallback:'Push to next meeting' },
+  { id:6, title:'TSEF blueprint and spec for Danny', dept:'ops', person:'Ansar', priority:'primary', status:'done', due:'2026-07-05', fallback:'N/A' },
+  { id:7, title:'Notion workspace configured and shared', dept:'ops', person:'Ansar', priority:'primary', status:'in_progress', due:'2026-07-05', fallback:'Use Google Drive' },
+  { id:8, title:'NDA drafted before new person conversation', dept:'ops', person:'Ansar', priority:'primary', status:'not_started', due:'2026-07-08', fallback:'Escalate to team' },
+  { id:9, title:'Meeting minutes 28 June — full document', dept:'ops', person:'Ansar', priority:'secondary', status:'in_progress', due:'2026-07-06', fallback:'N/A' },
+  { id:10, title:'MyIPO trademark registration — Ten&See name and logo', dept:'ops', person:'Ansar', priority:'secondary', status:'not_started', due:'2026-07-15', fallback:'N/A' },
+  { id:11, title:'Profit share model defined before new person sits down', dept:'finance', person:'Ansar', priority:'primary', status:'not_started', due:'2026-07-08', fallback:'Group meeting' },
+  { id:12, title:'AI infrastructure cost estimate', dept:'finance', person:'Danny', priority:'secondary', status:'not_started', due:'2026-07-12', fallback:'N/A' },
+];
+
+const SEED_MEETINGS = [
+  { id:1, date:'2026-07-05', title:'TSEF Planning Session', attendees:['Danny','Marwa','Ansar'], summary:'Decided to build TSEF locally first. Full architecture mapped out — NLP input, task engine, Primavera-style timeline, personal dashboards. Danny to build in Cursor. Ansar sketching blueprint. Azure VM confirmed stable.', decisions:['Build TSEF locally first','Danny builds in Cursor','One person takes dev lead'], tasks:[1,2,3] },
+  { id:2, date:'2026-06-28', title:'28 June — Infrastructure & Product Direction', attendees:['Danny','Marwa','Ansar'], summary:'Render removed, Azure VM set up via SSH. New UI direction confirmed — reel-style, mobile-first, 3 pages max. Ten&See positioning as Malaysia first student booking platform.', decisions:['Move from Render to Azure','MVP must be advanced','Reel-style mobile UI'], tasks:[4,5] },
+  { id:3, date:'2026-06-25', title:'25 June — New Person & WhatsApp Automation', attendees:['Danny','Marwa','Ansar'], summary:'Potential new team member discussed. WhatsApp AI broker automation loop presented. MVP defined as advanced with privacy and security policies.', decisions:['MVP advanced not basic','NDA before new person conversation','WhatsApp API keys first'], tasks:[6,7,8] },
+];
+
+let tasks = [];
+let meetings = [];
+let currentDept = 'tech';
+let nextTaskId = 1;
+let nextMeetingId = 1;
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, meetings, nextTaskId, nextMeetingId }));
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      tasks = data.tasks || SEED_TASKS;
+      meetings = data.meetings || SEED_MEETINGS;
+      nextTaskId = data.nextTaskId || Math.max(...tasks.map(t => t.id), 0) + 1;
+      nextMeetingId = data.nextMeetingId || Math.max(...meetings.map(m => m.id), 0) + 1;
+      return;
+    }
+  } catch (e) { /* fall through to seed */ }
+  tasks = JSON.parse(JSON.stringify(SEED_TASKS));
+  meetings = JSON.parse(JSON.stringify(SEED_MEETINGS));
+  nextTaskId = 13;
+  nextMeetingId = 4;
+  saveData();
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function isOverdue(task) {
+  return task.due && task.due < today() && task.status !== 'done';
+}
+
+function progressPct(status) {
+  return { done: 100, in_progress: 50, blocked: 10, not_started: 0 }[status] || 0;
+}
+
+function personStats(person) {
+  const mine = tasks.filter(t => t.person === person);
+  const done = mine.filter(t => t.status === 'done').length;
+  return {
+    primary: mine.filter(t => t.priority === 'primary').length,
+    secondary: mine.filter(t => t.priority === 'secondary').length,
+    done,
+    health: mine.length ? Math.round((done / mine.length) * 100) : 0,
+  };
+}
+
+function getTimelineWeeks() {
+  const now = new Date();
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  const weeks = [];
+  for (let i = 0; i < 4; i++) {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() + i * 7);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    weeks.push({
+      num: getISOWeek(start),
+      start: fmtDate(start),
+      end: fmtDate(end),
+      label: `${start.getDate()}–${end.getDate()} ${start.toLocaleString('en', { month: 'short' })}`,
+    });
+  }
+  return weeks;
+}
+
+function fmtDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function dueToWeekIndex(dueStr, weeks) {
+  if (!dueStr) return 0;
+  const due = new Date(dueStr + 'T12:00:00');
+  for (let i = 0; i < weeks.length; i++) {
+    const s = new Date(weeks[i].start + 'T00:00:00');
+    const e = new Date(weeks[i].end + 'T23:59:59');
+    if (due >= s && due <= e) return i;
+  }
+  if (due < new Date(weeks[0].start + 'T00:00:00')) return 0;
+  return weeks.length - 1;
+}
+
+function setActiveNav(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (el) el.classList.add('active');
+}
+
+function showPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) setActiveNav(page);
+  else setActiveNav(page);
+
+  const titles = {
+    overview: ['Overview', 'Ten&See Execution Framework — ' + new Date().toLocaleString('en', { month: 'long', year: 'numeric' })],
+    mytasks: ['My Tasks', CURRENT_USER + ' — Operations Head'],
+    timeline: ['4-Week Timeline', 'Primavera-style task flow'],
+    meetings: ['Meetings & Decisions', 'All meeting records'],
+    nlp: ['NLP Input', 'Paste meeting → auto-parse → tasks created'],
+    dept: ['Department Flow', 'Pipeline view'],
+  };
+  const t = titles[page] || ['TSEF', ''];
+  document.getElementById('topbar-title').textContent = t[0];
+  document.getElementById('topbar-sub').textContent = t[1];
+
+  if (page === 'overview') renderOverview();
+  if (page === 'mytasks') renderMyTasks();
+  if (page === 'timeline') renderTimeline();
+  if (page === 'meetings') renderMeetings();
+  if (page === 'dept') setDept(currentDept);
+}
+
+function taskItemHTML(t) {
+  const d = DEPTS[t.dept];
+  const overdue = isOverdue(t);
+  const statusMap = {
+    done: ['status-done', 'Done'],
+    in_progress: ['status-progress', 'In Progress'],
+    blocked: ['status-blocked', 'Blocked'],
+    not_started: ['status-notstarted', 'Not Started'],
+  };
+  const [sc, sl] = statusMap[t.status] || statusMap.not_started;
+  const priTag = t.priority === 'primary' ? 'high' : t.priority === 'secondary' ? 'medium' : 'low';
+
+  return `
+    <div class="task-item ${t.priority}${overdue ? ' overdue' : ''}" onclick="openTaskEdit(${t.id})">
+      <div class="task-dot" style="background:${d.color}"></div>
+      <div class="task-body">
+        <div class="task-title">${esc(t.title)}</div>
+        <div class="task-meta">
+          <span class="tag tag-${t.dept}">${d.icon} ${t.dept}</span>
+          <span class="tag tag-${priTag}">${t.priority}</span>
+          <span class="due-date${overdue ? ' due-overdue' : ''}">Due ${t.due}</span>
+        </div>
+      </div>
+      <span class="task-status ${sc}">${sl}</span>
+    </div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderPersonCards() {
+  document.getElementById('person-cards').innerHTML = Object.entries(PEOPLE).map(([name, p]) => {
+    const s = personStats(name);
+    return `
+      <div class="person-card ${p.cls}">
+        <div class="person-header">
+          <div class="person-avatar" style="background:${p.color}">${p.avatar}</div>
+          <div><div class="person-name">${name}</div><div class="person-dept" style="color:${p.color}">${p.dept}</div></div>
+        </div>
+        <div class="task-count-row">
+          <div class="task-count"><div class="tc-num" style="color:var(--primary)">${s.primary}</div><div class="tc-label">Primary</div></div>
+          <div class="task-count"><div class="tc-num" style="color:var(--secondary)">${s.secondary}</div><div class="tc-label">Secondary</div></div>
+          <div class="task-count"><div class="tc-num" style="color:var(--finance)">${s.done}</div><div class="tc-label">Done</div></div>
+        </div>
+        <div class="stat-sub" style="margin-bottom:6px">Health</div>
+        <div class="health-bar"><div class="health-fill" style="width:${s.health}%;background:${p.color}"></div></div>
+      </div>`;
+  }).join('');
+}
+
+function renderOverview() {
+  const inprog = tasks.filter(t => t.status === 'in_progress').length;
+  const overdue = tasks.filter(t => isOverdue(t)).length;
+  const done = tasks.filter(t => t.status === 'done').length;
+
+  document.getElementById('stat-total').textContent = tasks.length;
+  document.getElementById('stat-progress').textContent = inprog;
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-done').textContent = done;
+
+  renderPersonCards();
+
+  const recentTasks = [...tasks].slice(-5).reverse();
+  document.getElementById('overview-tasks').innerHTML = recentTasks.length
+    ? recentTasks.map(t => taskItemHTML(t)).join('')
+    : '<div class="empty"><div class="empty-icon">📋</div>No tasks yet</div>';
+
+  const recentMeets = meetings.slice(0, 3);
+  document.getElementById('overview-meetings').innerHTML = recentMeets.map(m => `
+    <div class="meeting-card" onclick="showPage('meetings', document.querySelector('[data-page=meetings]'))">
+      <div class="meeting-header"><div class="meeting-title">${esc(m.title)}</div><div class="meeting-date">${m.date}</div></div>
+      <div class="meeting-summary">${esc(m.summary.substring(0, 120))}...</div>
+      <div class="meeting-footer">${m.attendees.map(a => `<span class="attendee-pill">${a}</span>`).join('')}<span class="badge badge-blue" style="margin-left:auto">${m.decisions.length} decisions</span></div>
+    </div>`).join('');
+}
+
+function renderMyTasks() {
+  const mine = tasks.filter(t => t.person === CURRENT_USER);
+  const sortByDue = arr => [...arr].sort((a, b) => {
+    if (isOverdue(a) && !isOverdue(b)) return -1;
+    if (!isOverdue(a) && isOverdue(b)) return 1;
+    return (a.due || '').localeCompare(b.due || '');
+  });
+
+  const render = (arr, empty) => arr.length ? sortByDue(arr).map(t => taskItemHTML(t)).join('') : `<div class="empty"><div class="empty-icon">${empty}</div>No tasks</div>`;
+
+  document.getElementById('tasks-primary').innerHTML = render(mine.filter(t => t.priority === 'primary'), '🎯');
+  document.getElementById('tasks-secondary').innerHTML = render(mine.filter(t => t.priority === 'secondary'), '📋');
+  document.getElementById('tasks-parallel').innerHTML = render(mine.filter(t => t.priority === 'parallel'), '🔄');
+}
+
+function renderMeetings() {
+  document.getElementById('meetings-list').innerHTML = meetings.map(m => `
+    <div class="meeting-card">
+      <div class="meeting-header"><div><div class="meeting-title">${esc(m.title)}</div><div class="meeting-date" style="margin-top:4px">${m.date}</div></div><span class="badge badge-green">${m.tasks.length} tasks</span></div>
+      <div class="meeting-summary">${esc(m.summary)}</div>
+      <hr class="hr" style="margin:12px 0">
+      <div class="result-label" style="margin-bottom:8px">Decisions</div>
+      ${m.decisions.map((d, i) => `<div class="decision-item"><div class="decision-num">${i + 1}</div>${esc(d)}</div>`).join('')}
+      <div style="margin-top:12px;display:flex;gap:8px">${m.attendees.map(a => `<span class="attendee-pill">${a}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function ganttTaskHTML(t) {
+  const d = DEPTS[t.dept];
+  const overdue = isOverdue(t);
+  const pct = progressPct(t.status);
+  const bg = overdue ? 'rgba(255,68,68,0.08)' : `${d.color}14`;
+  const border = overdue ? '#ff4444' : d.color;
+  const color = overdue ? '#ff6666' : d.color;
+
+  return `
+    <div class="gantt-task" style="background:${bg};border-left-color:${border};color:${color}" onclick="openTaskEdit(${t.id})">
+      <div class="gantt-task-name">${esc(t.title.length > 28 ? t.title.slice(0, 28) + '…' : t.title)}</div>
+      <div class="gantt-task-meta">${t.person} · ${t.priority}${overdue ? ' · Overdue' : ''}</div>
+      <div class="gantt-progress"><div class="gantt-fill" style="width:${pct}%"></div></div>
+    </div>`;
+}
+
+function renderTimeline() {
+  const weeks = getTimelineWeeks();
+  const monthLabel = new Date().toLocaleString('en', { month: 'long', year: 'numeric' });
+  document.getElementById('timeline-title').textContent = `4-Week Rolling Timeline — ${monthLabel}`;
+
+  const activeWeek = weeks.findIndex(w => today() >= w.start && today() <= w.end);
+  const overdueCount = tasks.filter(t => isOverdue(t)).length;
+  document.getElementById('timeline-badges').innerHTML = `
+    <span class="badge badge-blue">W${weeks[activeWeek >= 0 ? activeWeek : 0].num} Active</span>
+    ${overdueCount ? `<span class="badge badge-amber">${overdueCount} Overdue</span>` : ''}`;
+
+  let html = '<div class="timeline-header"><div class="timeline-corner">Department</div>';
+  weeks.forEach(w => {
+    html += `<div class="week-header"><div class="week-num">W${w.num}</div><div class="week-dates">${w.label}</div></div>`;
+  });
+  html += '</div><div class="timeline-body">';
+
+  TIMELINE_DEPTS.forEach(code => {
+    const d = DEPTS[code];
+    const deptTasks = tasks.filter(t => t.dept === code);
+    const cells = [[], [], [], []];
+    deptTasks.forEach(t => cells[dueToWeekIndex(t.due, weeks)].push(t));
+
+    html += `<div class="timeline-row"><div class="dept-label"><div class="dept-name" style="color:${d.color}">${d.icon} ${d.name.split(' ')[0]}</div><div class="dept-owner">${d.owner}</div></div>`;
+    cells.forEach(col => {
+      html += `<div class="timeline-cell">${col.map(t => ganttTaskHTML(t)).join('')}</div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('timeline-root').innerHTML = html;
+
+  document.getElementById('timeline-legend').innerHTML = TIMELINE_DEPTS.map(code => {
+    const d = DEPTS[code];
+    return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)"><div style="width:24px;height:3px;background:${d.color};border-radius:2px"></div>${d.name.split(' ')[0]}</div>`;
+  }).join('') + `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)"><div style="width:24px;height:3px;background:#ff4444;border-radius:2px"></div> Overdue</div>`;
+}
+
+function setDept(code) {
+  currentDept = code;
+  const d = DEPTS[code];
+  document.getElementById('dept-icon').textContent = d.icon;
+  document.getElementById('dept-title').textContent = d.name;
+  document.getElementById('dept-title').style.color = d.color;
+  document.getElementById('dept-owner-label').textContent = `Owner: ${d.owner}`;
+  document.getElementById('dept-badge').innerHTML = `<span class="badge" style="background:${d.color}22;color:${d.color}">${code.toUpperCase()}</span>`;
+
+  const deptTasks = tasks.filter(t => t.dept === code);
+  const cols = { not_started: [], in_progress: [], done: [], blocked: [] };
+  deptTasks.forEach(t => (cols[t.status] || cols.not_started).push(t));
+
+  const render = arr => arr.map(t => `
+    <div class="pipe-task" style="border-left-color:${d.color}" onclick="openTaskEdit(${t.id})">
+      <div class="pipe-task-title">${esc(t.title)}</div>
+      <div class="pipe-task-meta"><span class="tag tag-${t.priority === 'primary' ? 'high' : t.priority === 'secondary' ? 'medium' : 'low'}">${t.priority}</span><span class="due-date${isOverdue(t) ? ' due-overdue' : ''}">Due ${t.due}</span></div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--text3);padding:8px">Empty</div>';
+
+  document.getElementById('col-notstarted').innerHTML = render(cols.not_started);
+  document.getElementById('col-progress').innerHTML = render(cols.in_progress);
+  document.getElementById('col-done').innerHTML = render(cols.done);
+  document.getElementById('col-blocked').innerHTML = render(cols.blocked);
+  document.getElementById('col-count-0').textContent = cols.not_started.length;
+  document.getElementById('col-count-1').textContent = cols.in_progress.length;
+  document.getElementById('col-count-2').textContent = cols.done.length;
+  document.getElementById('col-count-3').textContent = cols.blocked.length;
+
+  document.getElementById('topbar-title').textContent = d.name;
+  document.getElementById('topbar-sub').textContent = `${d.owner} · ${deptTasks.length} tasks`;
+}
+
+function openTaskEdit(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('edit-task-id').value = id;
+  document.getElementById('edit-task-title').value = t.title;
+  document.getElementById('edit-task-status').value = t.status;
+  document.getElementById('edit-task-due').value = t.due;
+  document.getElementById('edit-task-priority').value = t.priority;
+  document.getElementById('edit-task-person').value = t.person;
+  openModal('edit-task');
+}
+
+function saveTaskEdit() {
+  const id = parseInt(document.getElementById('edit-task-id').value, 10);
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.title = document.getElementById('edit-task-title').value.trim() || t.title;
+  t.status = document.getElementById('edit-task-status').value;
+  t.due = document.getElementById('edit-task-due').value;
+  t.priority = document.getElementById('edit-task-priority').value;
+  t.person = document.getElementById('edit-task-person').value;
+  saveData();
+  closeModal('edit-task');
+  showToast('Task updated');
+  refreshAll();
+}
+
+function refreshAll() {
+  const active = document.querySelector('.page.active');
+  if (!active) return renderOverview();
+  const page = active.id.replace('page-', '');
+  if (page === 'dept') setDept(currentDept);
+  else showPage(page);
+}
+
+function loadSample() {
+  document.getElementById('nlp-input').value = `Meeting 28 June - We moved from render to azure VM, connected via SSH, more control now can host LLMs. Danny set it up already.
+
+New UI direction - reel style, mobile first, max 3 pages. We might be first booking platform in Malaysia not just redirect like propertyguru.
+
+Marketing - Marwa to work on platforms, cinematic content not AI. Real storyline.
+
+One person takes lead on development and delegates.
+
+Plan A - get MVP and reach out for funding. Plan B - organic 20 agents a day.
+
+Notion needs to be configured again.`;
+}
+
+function parseMeeting() {
+  const text = document.getElementById('nlp-input').value.trim();
+  if (!text) return showToast('Paste a meeting transcript first.');
+
+  const btn = document.getElementById('parse-btn');
+  btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.textContent = 'Parse with TSEF';
+    btn.disabled = false;
+    showParseResult(extractFromTranscript(text));
+  }, 1200);
+}
+
+function extractFromTranscript(text) {
+  const lower = text.toLowerCase();
+  const tasksOut = [];
+  const decisions = [];
+  const questions = [];
+
+  if (/azure|render|ssh|vm|infrastructure/.test(lower)) {
+    decisions.push('Move from Render to Azure VM permanently');
+    tasksOut.push({ title: 'Document Azure VM setup and confirm stability', dept: 'tech', person: 'Danny', priority: 'primary', due: addDays(3), fallback: 'Group meeting' });
+  }
+  if (/reel|ui|mobile|3 pages/.test(lower)) {
+    decisions.push('UI to be reel-style, mobile-first, 3 pages max');
+    tasksOut.push({ title: 'UI redesign — reel-style 3 pages', dept: 'tech', person: 'Danny', priority: 'primary', due: addDays(5), fallback: 'Escalate to group meeting' });
+  }
+  if (/marketing|marwa|cinematic|platform/.test(lower)) {
+    decisions.push('Marwa leads marketing with cinematic real content');
+    tasksOut.push({ title: 'Cinematic intro concept — real storyline', dept: 'marketing', person: 'Marwa', priority: 'primary', due: addDays(3), fallback: 'Push to next meeting' });
+    tasksOut.push({ title: 'Platform selection — which 2 channels first', dept: 'marketing', person: 'Marwa', priority: 'secondary', due: addDays(5), fallback: 'Ansar shortlists' });
+  }
+  if (/notion/.test(lower)) {
+    tasksOut.push({ title: 'Configure Notion workspace for team', dept: 'ops', person: 'Ansar', priority: 'primary', due: addDays(2), fallback: 'Use Google Drive' });
+  }
+  if (/funding|organic|agents|plan a|plan b/.test(lower)) {
+    questions.push('Funding route or organic — which one do we commit to?');
+    tasksOut.push({ title: 'Agent outreach strategy — funding vs organic decision', dept: 'sales', person: 'Ansar', priority: 'primary', due: addDays(5), fallback: 'Group meeting to decide' });
+  }
+  if (/lead|development|delegates/.test(lower)) {
+    questions.push('Who takes development lead — confirmed?');
+    decisions.push('One person takes development lead and delegates');
+  }
+  if (!decisions.length) decisions.push('Meeting notes captured — review extracted tasks');
+  if (!questions.length) questions.push('Any blockers or open items to confirm next meeting?');
+
+  const summary = text.length > 280 ? text.slice(0, 280).trim() + '…' : text;
+
+  return { summary, decisions, tasks: tasksOut, questions };
+}
+
+function addDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function showParseResult(result) {
+  document.getElementById('result-summary').textContent = result.summary;
+  document.getElementById('result-decisions').innerHTML = result.decisions.map((d, i) => `<div class="decision-item"><div class="decision-num">${i + 1}</div>${esc(d)}</div>`).join('');
+  document.getElementById('result-tasks').innerHTML = result.tasks.map(t => {
+    const d = DEPTS[t.dept];
+    return `<div class="extracted-task" style="border-left-color:${d.color}"><div class="et-header"><div class="et-title">${esc(t.title)}</div><span class="task-status status-notstarted">New</span></div><div class="et-meta"><span class="tag tag-${t.dept}">${d.icon} ${t.dept}</span><span class="tag tag-${t.priority === 'primary' ? 'high' : 'medium'}">${t.priority}</span><span style="font-size:11px;color:var(--text3)">→ ${t.person}</span><span class="due-date">Due ${t.due}</span></div></div>`;
+  }).join('') || '<div class="empty">No tasks detected — add manually</div>';
+  document.getElementById('result-questions').innerHTML = result.questions.map((q, i) => `<div class="decision-item"><div class="decision-num" style="color:var(--secondary)">Q${i+1}</div>${esc(q)}</div>`).join('');
+  document.getElementById('parse-result').classList.add('visible');
+  window._pendingResult = result;
+}
+
+function saveToSystem() {
+  if (!window._pendingResult) return;
+  const r = window._pendingResult;
+  const newMeeting = {
+    id: nextMeetingId++,
+    date: document.getElementById('nlp-date').value,
+    title: 'Parsed Meeting — ' + document.getElementById('nlp-date').value,
+    attendees: document.getElementById('nlp-attendees').value.split(','),
+    summary: r.summary,
+    decisions: r.decisions,
+    tasks: [],
+  };
+
+  r.tasks.forEach(t => {
+    const newTask = { ...t, id: nextTaskId++, status: 'not_started' };
+    tasks.push(newTask);
+    newMeeting.tasks.push(newTask.id);
+  });
+
+  meetings.unshift(newMeeting);
+  saveData();
+  clearParse();
+  showPage('meetings');
+  showToast(`Meeting saved. ${r.tasks.length} task(s) added.`);
+}
+
+function clearParse() {
+  document.getElementById('nlp-input').value = '';
+  document.getElementById('parse-result').classList.remove('visible');
+  window._pendingResult = null;
+}
+
+function openModal(type) { document.getElementById('modal-' + type).classList.add('open'); }
+function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function addTask() {
+  const title = document.getElementById('new-task-title').value.trim();
+  if (!title) return showToast('Add a task title.');
+
+  tasks.push({
+    id: nextTaskId++,
+    title,
+    dept: document.getElementById('new-task-dept').value,
+    person: document.getElementById('new-task-person').value,
+    priority: document.getElementById('new-task-priority').value,
+    status: 'not_started',
+    due: document.getElementById('new-task-due').value,
+    fallback: document.getElementById('new-task-fallback').value || 'Escalate to team',
+  });
+
+  saveData();
+  closeModal('task');
+  document.getElementById('new-task-title').value = '';
+  showToast('Task added');
+  refreshAll();
+}
+
+function addMeeting() {
+  const title = document.getElementById('new-meet-title').value.trim();
+  if (!title) return showToast('Add a meeting title.');
+
+  meetings.unshift({
+    id: nextMeetingId++,
+    date: document.getElementById('new-meet-date').value,
+    title,
+    attendees: document.getElementById('new-meet-attendees').value.split(','),
+    summary: document.getElementById('new-meet-summary').value,
+    decisions: [],
+    tasks: [],
+  });
+
+  saveData();
+  closeModal('meeting');
+  document.getElementById('new-meet-title').value = '';
+  document.getElementById('new-meet-summary').value = '';
+  showToast('Meeting saved');
+  renderMeetings();
+}
+
+function initDates() {
+  const t = today();
+  ['nlp-date', 'new-meet-date', 'new-task-due'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = t;
+  });
+  const due = new Date();
+  due.setDate(due.getDate() + 7);
+  document.getElementById('new-task-due').value = due.toISOString().slice(0, 10);
+}
+
+loadData();
+initDates();
+renderOverview();
+</script>
+</body>
+</html>
