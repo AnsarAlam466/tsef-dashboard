@@ -22,6 +22,7 @@ type ParseResult = {
   decisions: string[];
   openQuestions: string[];
   tasks: ParsedTask[];
+  _parser?: string;
 };
 
 const SAMPLE = `Meeting 28 June - We moved from render to azure VM, connected via SSH, more control now can host LLMs. Danny set it up already.
@@ -110,6 +111,12 @@ export default function NlpPage() {
 
         {result && (
           <div className="mt-5 rounded-xl border border-[#2E3A32] bg-[#1C2420] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-[11px] uppercase tracking-wide text-[#6E7E72]">Parsed Result</div>
+              <span className={`rounded px-2 py-0.5 text-[10px] font-semibold ${result._parser === "openai" ? "bg-[#B8954A20] text-[#B8954A]" : "bg-[#6E7E7220] text-[#9AAB9F]"}`}>
+                {result._parser === "openai" ? "AI Parsed" : "Rule-Based Parser"}
+              </span>
+            </div>
             <Section label="Summary">
               <div className="text-sm leading-relaxed text-[#9AAB9F]">{result.summary}</div>
             </Section>

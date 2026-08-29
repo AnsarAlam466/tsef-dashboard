@@ -5,18 +5,31 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import clsx from "clsx";
 
-const MAIN_NAV = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/crm", label: "CRM", icon: "🤝" },
-  { href: "/deals", label: "Deals", icon: "💰" },
-  { href: "/board", label: "Board", icon: "🗂" },
-  { href: "/timeline", label: "Timeline", icon: "📊" },
-  { href: "/meetings", label: "Meetings", icon: "📋" },
-  { href: "/decisions", label: "Decisions", icon: "⚖️" },
-  { href: "/pitchbook", label: "Pitch Book", icon: "📖" },
-  { href: "/documents", label: "Documents", icon: "📁" },
-  { href: "/nlp", label: "NLP Input", icon: "🧠" },
-  { href: "/audit", label: "Audit", icon: "🛡" },
+const NAV_SECTIONS = [
+  {
+    title: "Home",
+    items: [{ href: "/", label: "Home", icon: "🏠" }],
+  },
+  {
+    title: "CRM",
+    items: [
+      { href: "/crm", label: "Leads & Agents", icon: "🤝" },
+      { href: "/deals", label: "Deals", icon: "💰" },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { href: "/board", label: "Task Board", icon: "🗂" },
+      { href: "/timeline", label: "Timeline", icon: "📊" },
+      { href: "/meetings", label: "Meetings", icon: "📋" },
+      { href: "/nlp", label: "NLP Input", icon: "🧠" },
+      { href: "/decisions", label: "Decisions", icon: "⚖️" },
+      { href: "/documents", label: "Documents", icon: "📁" },
+      { href: "/pitchbook", label: "Pitch Book", icon: "📖" },
+      { href: "/audit", label: "Audit", icon: "🛡" },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -33,22 +46,29 @@ export default function Sidebar() {
         <div className="mt-0.5 text-[11px] leading-tight text-[#6E7E72]">Operating System</div>
       </div>
 
-      <div className="px-3 pb-2 pt-4">
-        {MAIN_NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={clsx(
-              "mb-0.5 flex items-center gap-2.5 rounded-md border-l-2 px-2.5 py-2 text-[13px] transition-colors",
-              pathname === item.href
-                ? "border-[#B8954A] bg-[#B8954A1a] font-semibold text-[#F2EFE4]"
-                : "border-transparent text-[#9AAB9F] hover:bg-[#232D27] hover:text-[#F2EFE4]"
-            )}
-          >
-            <span className="w-[18px] text-center text-sm">{item.icon}</span> {item.label}
-          </Link>
+      <nav className="px-3 pb-2 pt-4">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title} className="mb-4">
+            <div className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-wider text-[#6E7E72]">
+              {section.title}
+            </div>
+            {section.items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={clsx(
+                  "mb-0.5 flex items-center gap-2.5 rounded-md border-l-2 px-2.5 py-2 text-[13px] transition-colors",
+                  pathname === item.href
+                    ? "border-[#B8954A] bg-[#B8954A1a] font-semibold text-[#F2EFE4]"
+                    : "border-transparent text-[#9AAB9F] hover:bg-[#232D27] hover:text-[#F2EFE4]"
+                )}
+              >
+                <span className="w-[18px] text-center text-sm">{item.icon}</span> {item.label}
+              </Link>
+            ))}
+          </div>
         ))}
-      </div>
+      </nav>
 
       <div className="mt-auto border-t border-[#2E3A32] p-3">
         {session?.user && (
